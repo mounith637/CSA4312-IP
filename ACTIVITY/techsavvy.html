@@ -1,0 +1,831 @@
+<title>TechSavvy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: sticky top bar with search; home = category cards with subcategory links, then deal and recommendation rows; shop = filter column beside a product grid; product page = picture beside buy box; cart/checkout = items beside a summary rail. All stack to one column on phones.
+   Palette: cobalt accent on cool grey paper, ink-navy text, amber for deals, green for stock. Type: Sora for headings, Manrope for text. */
+:root{
+  --bg:#F3F5FA;--surface:#FFFFFF;--tint:#E8ECF7;--ink:#111A33;--muted:#59648A;--line:#D8DEEE;
+  --accent:#2347E8;--accent-ink:#FFFFFF;--accent-soft:#DDE4FD;
+  --deal:#A5470A;--deal-soft:#FDE8D2;--ok:#0F7B4A;--ok-soft:#D9F2E5;--bad:#B42318;--bad-soft:#FBE0DD;--star:#C77D00;
+  --shadow:0 1px 2px rgba(20,30,70,.06),0 10px 26px rgba(20,30,70,.08);
+  --font-display:'Sora','Trebuchet MS',sans-serif;--font-body:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1020;--surface:#141B31;--tint:#1C2543;--ink:#E8ECFB;--muted:#A3AED2;--line:#2A3558;
+  --accent:#8CA3FF;--accent-ink:#0A1230;--accent-soft:#243066;
+  --deal:#FFB877;--deal-soft:#43280F;--ok:#7BE0AE;--ok-soft:#10382A;--bad:#FF9A8F;--bad-soft:#4A1E1A;--star:#F2B84B;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 26px rgba(0,0,0,.35);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1020;--surface:#141B31;--tint:#1C2543;--ink:#E8ECFB;--muted:#A3AED2;--line:#2A3558;
+  --accent:#8CA3FF;--accent-ink:#0A1230;--accent-soft:#243066;
+  --deal:#FFB877;--deal-soft:#43280F;--ok:#7BE0AE;--ok-soft:#10382A;--bad:#FF9A8F;--bad-soft:#4A1E1A;--star:#F2B84B;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 26px rgba(0,0,0,.35);color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--font-body);
+  padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body.lock{overflow:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+#app{max-width:1180px;margin:0 auto}
+h1,h2,h3{font-family:var(--font-display);line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(26px,4.6vw,42px);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(20px,3vw,26px);font-weight:700;letter-spacing:-.01em}
+h3{font-size:16px;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+.muted{color:var(--muted)}
+.sm{font-size:13px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.stars{color:var(--star);letter-spacing:1px;white-space:nowrap}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:12px 0;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font:800 21px var(--font-display);letter-spacing:-.02em}
+.brand svg{color:var(--accent)}
+.hsearch{flex:1 1 260px;display:flex;gap:8px;min-width:0;order:2}
+.hsearch input{min-width:0}
+.nav{display:flex;flex-wrap:wrap;gap:2px;margin-left:auto;order:3}
+.nl{background:none;border:0;padding:8px 10px;border-radius:8px;text-decoration:none;color:var(--ink);font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.nl:hover{background:var(--tint)}
+.nl.on{color:var(--accent);font-weight:700}
+.badge{background:var(--accent);color:var(--accent-ink);border-radius:999px;font-size:11px;font-weight:700;min-width:19px;height:19px;display:inline-grid;place-items:center;padding:0 5px}
+main{padding-top:26px;display:flex;flex-direction:column;gap:26px}
+.foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between}
+
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:10px 16px;border-radius:8px;font-weight:700;cursor:pointer;min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.ghost:hover{background:var(--accent-soft)}
+.btn.danger{background:transparent;color:var(--bad);border-color:var(--bad)}
+.btn.sm{padding:6px 12px;min-height:34px;font-size:14px}
+.btn.block{width:100%}
+.link{background:none;border:0;padding:0;color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px;width:100%;min-height:42px}
+input[type=checkbox],input[type=radio]{width:auto;min-height:0;accent-color:var(--accent)}
+textarea{resize:vertical;min-height:84px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:700;color:var(--muted);min-width:0}
+label.f>input,label.f>select,label.f>textarea{font-weight:400;color:var(--ink)}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.err{color:var(--bad);font-size:14px;font-weight:500}
+.err:empty{display:none}
+.notice{background:var(--deal-soft);color:var(--deal);padding:10px 14px;border-radius:8px;font-weight:500}
+.hint{background:var(--tint);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--muted)}
+.hint code{font-weight:700;color:var(--ink)}
+.check{display:flex;gap:8px;align-items:center;font-weight:500}
+.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:32px 20px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.tag{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);display:inline-block}
+.tag.alt{background:var(--tint);color:var(--muted)}
+.tag.deal{background:var(--deal-soft);color:var(--deal)}
+.pill{font-size:12px;font-weight:700;border-radius:999px;padding:3px 11px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--deal-soft);color:var(--deal)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.price{font:700 18px var(--font-display);font-variant-numeric:tabular-nums}
+.price s{font:400 13px var(--font-body);color:var(--muted);margin-left:4px}
+
+/* home */
+.hero{display:flex;flex-direction:column;gap:12px;max-width:700px}
+.hero p{color:var(--muted);font-size:16px}
+.codes{display:flex;flex-wrap:wrap;gap:8px}
+.code{border:1px dashed var(--deal);color:var(--deal);background:var(--deal-soft);border-radius:8px;padding:5px 10px;font-size:13px;font-weight:700}
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.cat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow)}
+.cat .top2{display:flex;gap:12px;align-items:center}
+.cat img{width:64px;height:48px;border-radius:8px;object-fit:cover;flex:none}
+.cat .name{background:none;border:0;padding:0;text-align:left;cursor:pointer;font:700 18px var(--font-display);color:var(--ink)}
+.cat .name:hover{color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 12px;cursor:pointer;font-weight:500;font-size:14px}
+.chip:hover{border-color:var(--accent)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.rank{font-size:12px;font-weight:700;color:var(--deal);background:var(--deal-soft);border-radius:999px;padding:1px 9px;margin-left:6px;vertical-align:middle;font-family:var(--font-body)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+.prod{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);min-width:0}
+.pimg{display:block;position:relative;aspect-ratio:4/3;background:var(--tint)}
+.pimg img{width:100%;height:100%;object-fit:cover;display:block}
+.off{position:absolute;left:10px;top:10px;background:var(--deal);color:var(--surface);font-size:12px;font-weight:800;border-radius:6px;padding:2px 8px}
+.so{position:absolute;right:10px;top:10px;background:var(--ink);color:var(--bg);font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px}
+.pbody{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.pbody h3 a{color:var(--ink);text-decoration:none}
+.pbody h3 a:hover{color:var(--accent)}
+.by{color:var(--muted);font-size:13px}
+.pfoot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:6px;flex-wrap:wrap}
+.pfoot .acts{display:flex;gap:6px;align-items:center}
+.icon{background:var(--bg);border:1px solid var(--line);border-radius:8px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;color:var(--muted)}
+.icon:hover{border-color:var(--accent);color:var(--accent)}
+.icon.on{color:var(--bad);border-color:var(--bad)}
+.icon.on svg{fill:currentColor}
+
+/* shop */
+.shop{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:start}
+.filters{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);display:flex;flex-direction:column;gap:12px}
+
+/* product page */
+.pd{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px}
+.pd>img{width:100%;border-radius:14px;aspect-ratio:4/3;object-fit:cover;background:var(--tint)}
+.buy{display:flex;flex-direction:column;gap:14px;min-width:0}
+.big{font:800 30px var(--font-display);font-variant-numeric:tabular-nums}
+.big s{font:400 16px var(--font-body);color:var(--muted);margin-left:6px}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.stepper button{background:var(--tint);border:0;width:34px;height:34px;font-size:18px;cursor:pointer}
+.stepper span{min-width:34px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+table.spec{border-collapse:collapse;width:100%}
+table.spec th{text-align:left;width:38%;color:var(--muted);font-weight:500;padding:8px 10px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+table.spec td{padding:8px 0;border-bottom:1px solid var(--line)}
+.rev{display:flex;flex-direction:column;gap:3px;padding:12px 0;border-bottom:1px solid var(--line)}
+.rev:last-child{border-bottom:0}
+
+/* cart, checkout */
+.co{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}
+.line{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:12px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.line:last-child{border-bottom:0;padding-bottom:0}
+.line img{width:76px;height:58px;border-radius:8px;object-fit:cover;background:var(--tint)}
+.line .meta{min-width:0;display:flex;flex-direction:column;gap:3px}
+.line .meta a{color:var(--ink);font-weight:700;text-decoration:none}
+.line .amt{text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end;font-weight:700;font-variant-numeric:tabular-nums}
+.sum{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px)}
+.sum dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:8px;font-variant-numeric:tabular-nums}
+.sum dd{margin:0;text-align:right}
+.sum .tot{border-top:1px solid var(--line);padding-top:10px;font:700 20px var(--font-display)}
+.sum .good{color:var(--ok)}
+.addr,.pay-opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg)}
+.addr:has(input:checked),.pay-opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.addr .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;cursor:pointer}
+.pay-opt{align-items:center;font-weight:500;cursor:pointer}
+
+/* auth */
+.auth{max-width:440px;margin:0 auto;width:100%}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--tint);border-radius:10px;padding:4px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:7px;padding:8px;font-weight:700;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--accent);box-shadow:var(--shadow)}
+
+/* orders */
+.ocard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.ohead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.ohead strong{font:700 17px var(--font-display);margin-right:8px}
+.st-Placed,.st-Confirmed,.st-Packed{background:var(--accent-soft);color:var(--accent)}
+.st-Shipped{background:var(--accent);color:var(--accent-ink)}
+.st-Delivered{background:var(--ok-soft);color:var(--ok)}
+.st-Cancelled{background:var(--bad-soft);color:var(--bad)}
+.lines{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.lines li{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.lines .l{display:flex;gap:10px;align-items:center;min-width:0}
+.lines img{width:46px;height:36px;object-fit:cover;border-radius:6px;background:var(--tint);flex:none}
+.lines .n{min-width:0}
+.lines .n small{display:block;color:var(--muted)}
+.oinfo{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 20px;font-size:14px}
+.oinfo b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr)}
+.steps li{position:relative;text-align:center;font-size:12px;color:var(--muted);padding-top:22px;line-height:1.25;padding-inline:2px}
+.steps li::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--line);z-index:1;border:2px solid var(--surface)}
+.steps li:not(:first-child)::after{content:"";position:absolute;top:6px;left:-50%;width:100%;height:2px;background:var(--line)}
+.steps li.done{color:var(--ink)}
+.steps li.done::before,.steps li.done::after{background:var(--accent)}
+.steps li.now{font-weight:700;color:var(--accent)}
+.where{background:var(--tint);border-radius:10px;padding:10px 12px;font-size:14px}
+.hist{margin:0;padding:0;list-style:none;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+pre.mail{white-space:pre-wrap;word-break:break-word;background:var(--tint);border-radius:10px;padding:14px;font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;margin:0;max-height:48vh;overflow:auto}
+
+/* admin */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;font-weight:700;color:var(--muted);cursor:pointer}
+.tab.on{color:var(--accent);border-color:var(--accent)}
+.stats{display:flex;flex-wrap:wrap;gap:10px 0}
+.stats div{padding:0 22px 0 0;margin-right:22px;border-right:1px solid var(--line)}
+.stats div:last-child{border:0;margin:0}
+.stats b{display:block;font:700 22px var(--font-display);font-variant-numeric:tabular-nums}
+.stats span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;flex-wrap:wrap}
+.row img{width:64px;height:48px;object-fit:cover;border-radius:8px;background:var(--tint);flex:none}
+.row .grow{flex:1;min-width:200px;display:flex;flex-direction:column;gap:2px}
+.row .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pr{display:flex;gap:6px;align-items:center}
+.pr input{width:110px;min-height:34px;padding:5px 10px}
+.oedit{display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr) auto;gap:12px;align-items:end;border-top:1px solid var(--line);padding-top:14px}
+.preview{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.preview img{width:120px;height:90px;object-fit:cover;border-radius:10px;background:var(--tint)}
+details.cu{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+details.cu summary{cursor:pointer;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+details.cu .in{margin-top:12px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.tw{overflow-x:auto}
+table.t{border-collapse:collapse;width:100%;font-size:14px;min-width:420px}
+table.t th{text-align:left;color:var(--muted);font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px 6px 0;border-bottom:1px solid var(--line)}
+table.t td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+
+/* modal + toast */
+.overlay{position:fixed;inset:0;z-index:40;background:rgba(6,10,28,.6);display:grid;place-items:center;overflow-y:auto;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.dialog{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);width:100%;max-width:680px;padding:20px;display:flex;flex-direction:column;gap:16px;outline:0;min-width:0}
+.dialog.narrow{max-width:500px}
+.dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.x{background:var(--tint);border:0;border-radius:8px;width:36px;height:36px;font-size:20px;line-height:1;cursor:pointer;flex:none}
+#toast-root{position:fixed;left:0;right:0;bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:60;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding-inline:16px}
+.toast{background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:500;box-shadow:var(--shadow);max-width:480px}
+.toast.warn{background:var(--deal-soft);color:var(--deal)}
+
+@media (max-width:900px){
+  .shop{grid-template-columns:minmax(0,1fr)}
+  .filters{position:static}
+  .pd{grid-template-columns:minmax(0,1fr)}
+  .co{grid-template-columns:minmax(0,1fr)}
+  .sum{position:static}
+}
+@media (max-width:560px){
+  .line{grid-template-columns:64px minmax(0,1fr)}
+  .line img{width:64px;height:50px}
+  .line .amt{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}
+  .oedit{grid-template-columns:minmax(0,1fr)}
+  .steps li{font-size:11px}
+  .stats div{padding-right:14px;margin-right:14px}
+  .nav{margin-left:0;order:2}
+  .hsearch{order:3;flex-basis:100%}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
+
+<div id="app"></div>
+<div id="modal-root"></div>
+<div id="toast-root" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- helpers ---------- */
+const LS_KEY='techsavvy.v1';
+const STATUS=['Placed','Confirmed','Packed','Shipped','Delivered'];
+const ALLST=STATUS.concat(['Cancelled']);
+const COUPONS={
+  WELCOME10:{label:'10% off, up to ₹1,500, on orders above ₹1,000',min:1000},
+  TECH500:{label:'₹500 off on orders above ₹15,000',min:15000},
+  FREESHIP:{label:'Free delivery on any order',min:0}
+};
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>'₹'+Math.round(Number(n)).toLocaleString('en-IN');
+const uid=p=>p+Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3);
+const ago=(d,h)=>new Date(Date.now()-d*864e5-(h||0)*36e5).toISOString();
+const fmtDT=iso=>new Date(iso).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
+const fmtD=iso=>new Date(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+const stars=n=>{const r=Math.round(n);return '<span class="stars" role="img" aria-label="'+(+n).toFixed(1)+' out of 5">'+'★'.repeat(r)+'☆'.repeat(5-r)+'</span>'};
+async function hash(s){
+  try{if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('ts:'+s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}}catch(e){}
+  let h=5381;const t='ts:'+s;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return 'x'+(h>>>0).toString(16);
+}
+
+/* ---------- product pictures (drawn, no external files) ---------- */
+function artURI(kind,h){
+  const c1='hsl('+h+' 55% 42%)',c2='hsl('+h+' 62% 64%)',bg='hsl('+h+' 45% 93%)',dk='#1a2138',gr='#c9cfdf';
+  let o="<rect width='320' height='240' fill='"+bg+"'/><ellipse cx='160' cy='216' rx='110' ry='9' fill='rgba(20,30,60,.13)'/>";
+  const phone=(x,w)=>"<rect x='"+x+"' y='26' width='"+w+"' height='186' rx='16' fill='"+dk+"'/><rect x='"+(x+6)+"' y='34' width='"+(w-12)+"' height='170' rx='10' fill='"+c1+"'/><rect x='"+(x+6)+"' y='34' width='"+(w-12)+"' height='86' rx='10' fill='"+c2+"' opacity='.55'/>";
+  switch(kind){
+    case 'phone':o+=phone(112,96)+"<circle cx='160' cy='43' r='3' fill='"+dk+"'/>";break;
+    case 'foldable':o+=phone(62,92)+phone(166,92)+"<rect x='154' y='26' width='12' height='186' fill='"+dk+"'/>";break;
+    case 'laptop':case 'gaming':
+      o+="<rect x='70' y='34' width='180' height='122' rx='9' fill='"+dk+"'/><rect x='78' y='42' width='164' height='106' rx='4' fill='"+c1+"'/><rect x='78' y='42' width='164' height='50' rx='4' fill='"+c2+"' opacity='.5'/><path d='M40 160h240l-14 20H54z' fill='"+gr+"'/>"+(kind==='gaming'?"<rect x='70' y='158' width='180' height='4' fill='"+c2+"'/>":"");break;
+    case 'tablet':case 'draw':
+      o+="<rect x='64' y='30' width='192' height='170' rx='16' fill='"+dk+"'/><rect x='74' y='40' width='172' height='150' rx='8' fill='"+c1+"'/><rect x='74' y='40' width='172' height='72' rx='8' fill='"+c2+"' opacity='.5'/>"+(kind==='draw'?"<path d='M262 70l14 120-8 6-8-6z' fill='"+gr+"'/>":"");break;
+    case 'watch':o+="<rect x='136' y='22' width='48' height='196' rx='14' fill='"+c1+"'/><rect x='118' y='78' width='84' height='84' rx='24' fill='"+dk+"'/><rect x='126' y='86' width='68' height='68' rx='18' fill='"+c2+"'/><path d='M160 98v24l14 8' stroke='"+dk+"' stroke-width='5' fill='none' stroke-linecap='round'/>";break;
+    case 'band':o+="<rect x='144' y='22' width='32' height='196' rx='14' fill='"+c1+"'/><rect x='134' y='86' width='52' height='68' rx='16' fill='"+dk+"'/><rect x='141' y='94' width='38' height='52' rx='10' fill='"+c2+"'/>";break;
+    case 'headphones':o+="<path d='M84 150a76 76 0 0 1 152 0' stroke='"+dk+"' stroke-width='12' fill='none'/><rect x='68' y='138' width='38' height='64' rx='16' fill='"+c1+"'/><rect x='214' y='138' width='38' height='64' rx='16' fill='"+c1+"'/><rect x='76' y='150' width='14' height='40' rx='7' fill='"+c2+"'/><rect x='230' y='150' width='14' height='40' rx='7' fill='"+c2+"'/>";break;
+    case 'buds':o+="<rect x='96' y='96' width='128' height='96' rx='28' fill='"+c1+"'/><path d='M96 140h128' stroke='"+dk+"' stroke-width='3' opacity='.4'/><ellipse cx='132' cy='70' rx='14' ry='26' fill='"+dk+"'/><ellipse cx='188' cy='70' rx='14' ry='26' fill='"+dk+"'/><circle cx='160' cy='170' r='5' fill='"+c2+"'/>";break;
+    case 'charger':o+="<rect x='128' y='34' width='10' height='30' rx='3' fill='"+gr+"'/><rect x='182' y='34' width='10' height='30' rx='3' fill='"+gr+"'/><rect x='108' y='62' width='104' height='96' rx='16' fill='"+c1+"'/><rect x='148' y='128' width='24' height='10' rx='5' fill='"+dk+"'/><path d='M160 158c0 40 60 14 60 52' stroke='"+dk+"' stroke-width='6' fill='none'/>";break;
+    case 'cable':o+="<path d='M70 170c60-110 100 70 180-60' stroke='"+c1+"' stroke-width='8' fill='none' stroke-linecap='round'/><rect x='52' y='158' width='28' height='24' rx='6' fill='"+dk+"'/><rect x='238' y='92' width='28' height='24' rx='6' fill='"+dk+"'/>";break;
+    case 'bank':o+="<rect x='104' y='40' width='112' height='162' rx='18' fill='"+c1+"'/><rect x='116' y='54' width='88' height='44' rx='8' fill='"+c2+"' opacity='.6'/><circle cx='132' cy='166' r='5' fill='"+c2+"'/><circle cx='150' cy='166' r='5' fill='"+c2+"'/><circle cx='168' cy='166' r='5' fill='"+c2+"'/><circle cx='186' cy='166' r='5' fill='"+gr+"'/>";break;
+    case 'case':o+="<rect x='106' y='24' width='108' height='192' rx='24' fill='"+c1+"'/><rect x='116' y='34' width='88' height='172' rx='16' fill='"+bg+"'/><rect x='120' y='40' width='44' height='46' rx='12' fill='"+c1+"'/><circle cx='134' cy='54' r='7' fill='"+dk+"'/><circle cx='150' cy='72' r='7' fill='"+dk+"'/>";break;
+    case 'ssd':o+="<rect x='86' y='72' width='148' height='98' rx='16' fill='"+c1+"'/><rect x='86' y='72' width='148' height='36' rx='16' fill='"+c2+"' opacity='.6'/><rect x='104' y='134' width='56' height='8' rx='4' fill='"+bg+"'/><circle cx='206' cy='140' r='7' fill='"+gr+"'/>";break;
+    default:o+="<rect x='110' y='60' width='100' height='110' rx='14' fill='"+c1+"'/>";
+  }
+  return 'data:image/svg+xml;utf8,'+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 240'>"+o+"</svg>");
+}
+
+/* ---------- seed data ---------- */
+// id, name, brand, category, subcategory, price, list price, stock, rating, rating count, units sold, picture, hue, description, specs
+const P=[
+['p1','Nova X1 Pro','Nova','Smartphones','Flagship',79999,89999,14,4.6,812,540,'phone',222,'A flagship phone with a bright 6.7 inch LTPO display, a three-lens camera and all-day battery. Ships with a 45W charger in the box.',['Display|6.7 in AMOLED, 120 Hz','Processor|Octa-core 3.2 GHz','Memory|12 GB RAM, 256 GB storage','Camera|50 MP + 12 MP + 10 MP','Battery|5,000 mAh, 45W wired']],
+['p2','Pixa 9 5G','Pixa','Smartphones','Android',32999,37999,25,4.4,920,640,'phone',280,'A balanced 5G phone with a clean Android build, a 108 MP main camera and two years of updates.',['Display|6.5 in AMOLED, 90 Hz','Memory|8 GB RAM, 128 GB storage','Camera|108 MP + 8 MP','Battery|5,000 mAh, 33W wired','Network|Dual 5G SIM']],
+['p3','Volt Lite 4','Volt','Smartphones','Budget',11499,12999,60,4.2,1500,1500,'phone',160,'A dependable everyday phone with a big battery and a sharp display at an easy price.',['Display|6.6 in LCD, 90 Hz','Memory|4 GB RAM, 64 GB storage','Camera|50 MP + 2 MP','Battery|6,000 mAh, 18W wired']],
+['p4','Zenith Fold 2','Zenith','Smartphones','Foldable',129999,149999,5,4.5,90,90,'foldable',200,'A book-style foldable with a 7.6 inch inner screen for reading, multitasking and video.',['Inner display|7.6 in AMOLED, 120 Hz','Outer display|6.2 in AMOLED','Memory|12 GB RAM, 512 GB storage','Battery|4,400 mAh, 25W wired']],
+['p5','Kite A3','Kite','Smartphones','Budget',8999,9999,0,4.0,1100,1100,'phone',40,'A compact entry phone for calls, messaging and light use. Restocking soon.',['Display|6.4 in LCD','Memory|3 GB RAM, 32 GB storage','Battery|5,000 mAh']],
+['p6','Orbit Air 14','Orbit','Laptops','Ultrabook',74999,84999,12,4.5,430,260,'laptop',230,'A 1.2 kg ultrabook with a 14 inch 2.8K screen and up to 16 hours of battery.',['Display|14 in 2.8K IPS','Processor|10-core 12th-gen class','Memory|16 GB RAM, 512 GB SSD','Weight|1.2 kg','Battery|Up to 16 hours']],
+['p7','Orbit Blaze G16','Orbit','Laptops','Gaming',119999,134999,6,4.6,210,120,'gaming',350,'A 16 inch gaming laptop with a dedicated graphics card and a 165 Hz display.',['Display|16 in QHD, 165 Hz','Graphics|8 GB dedicated','Memory|16 GB RAM, 1 TB SSD','Cooling|Dual fan, vapour chamber']],
+['p8','Pixa Book Student','Pixa','Laptops','Student',36999,42999,30,4.3,640,480,'laptop',280,'A light, tough laptop that handles classes, docs and video calls through the day.',['Display|15.6 in FHD','Memory|8 GB RAM, 512 GB SSD','Weight|1.6 kg','Battery|Up to 10 hours']],
+['p9','Zenith Pro Business 15','Zenith','Laptops','Business',68999,72999,9,4.4,175,110,'laptop',205,'A business laptop with a fingerprint reader, a spill-resistant keyboard and a 3-year warranty.',['Display|15.6 in FHD anti-glare','Memory|16 GB RAM, 512 GB SSD','Security|Fingerprint, TPM 2.0','Warranty|3 years on site']],
+['p10','Volt Go 11','Volt','Laptops','Student',24999,29999,18,4.1,520,430,'laptop',160,'A small 11.6 inch laptop for notes, browsing and online classes.',['Display|11.6 in HD','Memory|4 GB RAM, 128 GB storage','Weight|1.1 kg','Battery|Up to 12 hours']],
+['p11','Nova Tab S','Nova','Tablets','Android Tablets',27999,31999,20,4.4,380,300,'tablet',222,'An 11 inch tablet with four speakers and a 2K display for streaming and study.',['Display|11 in 2K LCD, 90 Hz','Memory|6 GB RAM, 128 GB storage','Audio|Quad speakers','Battery|8,000 mAh']],
+['p12','Pixa Draw 12','Pixa','Tablets','Drawing',45999,49999,8,4.6,140,95,'draw',280,'A tablet made for sketching, with a pressure-sensitive pen and a paper-feel screen.',['Display|12.4 in AMOLED','Pen|4,096 pressure levels, included','Memory|8 GB RAM, 256 GB storage']],
+['p13','Kite Kids Tab','Kite','Tablets','Kids',9999,12999,35,4.2,360,290,'tablet',40,'A tablet with a drop-proof cover, parental controls and a kids learning library.',['Display|8 in HD','Memory|3 GB RAM, 32 GB storage','Safety|Parental controls, shock-proof case']],
+['p14','Nova Buds Air','Nova','Accessories','Headphones',4999,6999,80,4.3,2100,1900,'buds',222,'True wireless earbuds with active noise cancellation and 28 hours of battery with the case.',['Noise|Active noise cancellation','Battery|7 h buds, 28 h with case','Water|IPX4','Connection|Bluetooth 5.3']],
+['p15','Zenith Studio Over-ear','Zenith','Accessories','Headphones',12999,15999,22,4.5,460,310,'headphones',200,'Over-ear wireless headphones with detailed sound and 40 hours of playback.',['Drivers|40 mm','Battery|40 hours','Connection|Bluetooth 5.2, wired','Weight|250 g']],
+['p16','Volt 65W GaN Charger','Volt','Accessories','Chargers & Cables',1799,2499,150,4.4,1300,1700,'charger',160,'A small 65W charger with two USB-C ports and one USB-A. Charges a phone and a laptop together.',['Power|65W total','Ports|2 x USB-C, 1 x USB-A','Safety|Overheat and surge protection']],
+['p17','Volt USB-C Cable 2 m','Volt','Accessories','Chargers & Cables',399,599,300,4.2,2800,3200,'cable',160,'A braided 2 metre USB-C cable rated for 100W charging and fast data.',['Length|2 m','Rating|100W, 480 Mbps','Build|Braided nylon']],
+['p18','Kite Armor Case for X1','Kite','Accessories','Cases',799,999,90,4.1,520,640,'case',40,'A slim shock-absorbing case with raised edges to protect the screen and camera.',['Fits|Nova X1 Pro','Protection|1.8 m drop tested','Material|TPU and polycarbonate']],
+['p19','Orbit Portable SSD 1 TB','Orbit','Accessories','Storage',7999,9499,40,4.6,780,520,'ssd',230,'A pocket-sized SSD with read speeds up to 1,050 MB/s. Works with phones, laptops and consoles.',['Capacity|1 TB','Speed|Up to 1,050 MB/s read','Port|USB-C 3.2','Weight|52 g']],
+['p20','Orbit 20000 mAh Power Bank','Orbit','Accessories','Chargers & Cables',1999,2799,70,4.3,980,1200,'bank',230,'A 20,000 mAh power bank with 22.5W fast charging. Charges most phones four times.',['Capacity|20,000 mAh','Output|22.5W','Ports|2 x USB-A, 1 x USB-C']],
+['p21','Nova Watch S2','Nova','Wearables','Smartwatches',14999,17999,28,4.3,540,380,'watch',222,'A smartwatch with GPS, heart-rate and sleep tracking, and a 7-day battery.',['Display|1.43 in AMOLED','Sensors|GPS, heart rate, SpO2','Battery|Up to 7 days','Water|5 ATM']],
+['p22','Pixa Fit Band 3','Pixa','Wearables','Fitness Bands',2499,2999,100,4.2,1900,2100,'band',280,'A light fitness band with step, heart-rate and sleep tracking and a 14-day battery.',['Display|1.1 in AMOLED','Battery|Up to 14 days','Water|5 ATM','Modes|40 sport modes']],
+['p23','Zenith Trail Watch','Zenith','Wearables','Smartwatches',24999,27999,3,4.5,160,70,'watch',200,'A rugged outdoor watch with dual-band GPS, a compass and a 14-day battery.',['Display|1.4 in always-on','GPS|Dual-band','Battery|Up to 14 days','Build|Sapphire glass, steel bezel']],
+['p24','Kite Fit Lite','Kite','Wearables','Fitness Bands',1499,1999,65,4.0,1300,1500,'band',40,'A simple, affordable band for steps, sleep and heart rate.',['Display|0.96 in colour','Battery|Up to 10 days','Water|IP68']]
+];
+const RV=[
+['p1','Aditi S.',5,'Camera is excellent in low light and the battery lasts well past a day.'],['p1','Manoj K.',4,'Fast and smooth. The charger in the box is a nice touch.'],
+['p2','Sneha P.',5,'Best phone I have used at this price. Clean software.'],['p2','Karthik R.',4,'Great screen. Speakers could be louder.'],
+['p3','Imran A.',4,'Battery lasts two days for me. Fine for calls and videos.'],
+['p6','Neha T.',5,'Very light and the screen is gorgeous. Easily lasts a workday.'],['p6','Rahul D.',4,'Fast and quiet. Wish it had one more port.'],
+['p14','Farah S.',5,'The noise cancellation is better than I expected for the price.'],['p14','Vikram N.',4,'Comfortable for long calls. The case is a bit large.'],
+['p22','Divya K.',4,'Accurate steps and sleep tracking. The battery really does last two weeks.'],['p19','Arjun M.',5,'Copied a 40 GB folder in under a minute.']
+];
+let db;
+const ui={f:{q:'',cat:'All',sub:'All',brand:'All',min:'',max:'',stock:false,sort:'popular'},authRole:'customer',authMode:'login',after:null,notice:'',oTab:'products',aTab:'products',aCat:'All',cuF:'orders',ordF:'All',coupon:'',q:1,confirm:null,img:null,co:{addr:null,pay:'upi'}};
+let view='home',pid=null,storageOK=true;
+
+const prod=id=>db.products.find(p=>p.id===id);
+const isAdmin=()=>!!(db.session&&db.session.role==='admin');
+const user=()=>db.session&&db.session.role==='user'?db.users.find(u=>u.id===db.session.id):null;
+const offPct=p=>p.mrp>p.price?Math.round((p.mrp-p.price)/p.mrp*100):0;
+function rate(p){
+  const rv=db.reviews.filter(r=>r.pid===p.id&&!r.seed),sum=rv.reduce((s,r)=>s+r.rating,0),n=p.rn+rv.length;
+  return{avg:n?(p.r*p.rn+sum)/n:0,n:n};
+}
+function stockInfo(p){return p.stock<=0?{t:'Out of stock',c:'bad'}:p.stock<=5?{t:'Only '+p.stock+' left',c:'warn'}:{t:'In stock',c:'ok'}}
+const img=p=>p.image||artURI(p.kind,p.hue);
+function catsRanked(){
+  const m={};db.products.forEach(p=>{m[p.cat]=(m[p.cat]||0)+p.sold});
+  return Object.keys(m).sort((a,b)=>m[b]-m[a]).map(c=>({name:c,sold:m[c]}));
+}
+function subsOf(cat){
+  const m={};db.products.filter(p=>p.cat===cat).forEach(p=>{m[p.sub]=(m[p.sub]||0)+p.sold});
+  return Object.keys(m).sort((a,b)=>m[b]-m[a]);
+}
+
+async function seed(){
+  const d={v:1,seq:1001,admin:{user:'admin',pass:await hash('admin123')},users:[],products:[],reviews:[],orders:[],carts:{},views:{},session:null};
+  db=d;
+  P.forEach(r=>d.products.push({id:r[0],name:r[1],brand:r[2],cat:r[3],sub:r[4],price:r[5],mrp:r[6],stock:r[7],r:r[8],rn:r[9],sold:r[10],kind:r[11],hue:r[12],desc:r[13],specs:r[14].map(s=>{const a=s.split('|');return{k:a[0],v:a[1]}}),image:null,added:ago(60)}));
+  RV.forEach((r,i)=>d.reviews.push({id:'r'+i,pid:r[0],name:r[1],rating:r[2],text:r[3],date:ago(5+i*3),verified:true,seed:true}));
+  const addr={id:'a1',label:'Home',name:'Rahul Verma',phone:'9876543210',line:'21, Lake View Road',area:'Madhapur',city:'Hyderabad',state:'Telangana',pin:'500081'};
+  const u={id:'u1',name:'Rahul Verma',email:'sample@techsavvy.test',phone:'9876543210',pass:await hash('sample123'),sample:true,joined:ago(45),addresses:[addr],wish:['p21','p15']};
+  d.users.push(u);
+  d.orders.push(mkOrder(u,addr,[{pid:'p14',qty:1},{pid:'p16',qty:1}],'',{method:'UPI',status:'Paid',ref:'UPI482910377'},'Delivered',12,true));
+  d.orders.push(mkOrder(u,addr,[{pid:'p22',qty:1}],'WELCOME10',{method:'Card',status:'Paid',ref:'Card •••• 4242'},'Shipped',2,true));
+  d.views.u1=['p21','p15','p22','p14','p20'];
+  return d;
+}
+function discountOf(sub,code){
+  const c=COUPONS[code];if(!c)return{amt:0,ship:false,err:code?'That code is not valid.':''};
+  if(sub<c.min)return{amt:0,ship:false,err:'This code needs an order above '+money(c.min)+'.'};
+  if(code==='WELCOME10')return{amt:Math.min(1500,Math.round(sub*.1)),ship:false,err:''};
+  if(code==='TECH500')return{amt:500,ship:false,err:''};
+  return{amt:0,ship:true,err:''};
+}
+function priceOrder(sub,code){
+  const d=discountOf(sub,code),after=sub-d.amt,fee=sub===0||d.ship||after>=999?0:99;
+  return{sub:sub,disc:d.amt,fee:fee,total:after+fee,err:d.err,ok:d.amt>0||d.ship};
+}
+function mkOrder(u,addr,lines,coupon,pay,status,daysAgo,sample){
+  const items=lines.map(l=>{const p=prod(l.pid);return{pid:p.id,name:p.name,brand:p.brand,price:p.price,qty:l.qty,kind:p.kind,hue:p.hue}});
+  const sub=items.reduce((s,i)=>s+i.price*i.qty,0),pr=priceOrder(sub,coupon);
+  const o={id:'TS-'+(db.seq++),userId:u.id,customer:{name:u.name,email:u.email,phone:u.phone},items:items,subtotal:sub,discount:pr.disc,coupon:pr.ok?coupon:'',fee:pr.fee,total:pr.total,address:addr,pay:pay,status:'Placed',location:'Order received at the TechSavvy warehouse',history:[{status:'Placed',at:ago(daysAgo,1),loc:'Order received at the TechSavvy warehouse'}],createdAt:ago(daysAgo,1),sample:!!sample};
+  const idx=STATUS.indexOf(status);
+  for(let i=1;i<=idx;i++){const loc=defLoc(STATUS[i],o);o.history.push({status:STATUS[i],at:ago(Math.max(daysAgo-i*.6,0)),loc:loc});o.status=STATUS[i];o.location=loc}
+  return o;
+}
+function defLoc(st,o){return{Placed:'Order received at the TechSavvy warehouse',Confirmed:'Payment verified, order confirmed',Packed:'Packed and ready to ship',Shipped:'With the courier, on the way to '+o.address.city,Delivered:'Delivered to '+o.address.city,Cancelled:'Order cancelled'}[st]||st}
+function loadDB(){try{const r=localStorage.getItem(LS_KEY);if(r){const d=JSON.parse(r);if(d&&d.v===1)return d}}catch(e){storageOK=false}return null}
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(db))}catch(e){if(storageOK)toast('This browser is blocking storage, so changes last only until you close the page.','warn');storageOK=false}}
+
+/* ---------- cart, wishlist, history ---------- */
+const ckey=()=>db.session&&db.session.role==='user'?db.session.id:'guest';
+const cart=()=>db.carts[ckey()]||(db.carts[ckey()]=[]);
+function cartRows(){return cart().map((it,i)=>({it:it,i:i,p:prod(it.pid)})).filter(r=>r.p)}
+function cleanCart(){const c=cart();for(let i=c.length-1;i>=0;i--){if(!prod(c[i].pid))c.splice(i,1);else if(c[i].qty>prod(c[i].pid).stock&&prod(c[i].pid).stock>0)c[i].qty=prod(c[i].pid).stock}}
+const cartCount=()=>cart().reduce((s,i)=>s+i.qty,0);
+function cartSub(){return cartRows().reduce((s,r)=>s+r.p.price*r.it.qty,0)}
+function addToCart(id,qty){
+  const p=prod(id);if(!p)return false;if(p.stock<=0){toast('Sorry, '+p.name+' is out of stock.','warn');return false}
+  const c=cart(),f=c.find(x=>x.pid===id),have=f?f.qty:0;
+  if(have+qty>p.stock){toast('Only '+p.stock+' of '+p.name+' available'+(have?' (you already have '+have+')':'')+'.','warn');if(f)f.qty=p.stock;else c.push({pid:id,qty:p.stock});return false}
+  if(f)f.qty+=qty;else c.push({pid:id,qty:qty});return true;
+}
+function mergeGuest(id){
+  const g=db.carts.guest||[];if(!g.length)return;db.carts[id]=db.carts[id]||[];
+  g.forEach(it=>{const f=db.carts[id].find(x=>x.pid===it.pid);if(f)f.qty=Math.min(it.qty+f.qty,(prod(it.pid)||{stock:99}).stock);else db.carts[id].push(it)});
+  db.carts.guest=[];
+}
+const viewsKey=()=>db.session&&db.session.role==='user'?db.session.id:'guest';
+function trackView(id){const k=viewsKey(),l=(db.views[k]||[]).filter(x=>x!==id);l.unshift(id);db.views[k]=l.slice(0,20)}
+const wished=id=>{const u=user();return !!(u&&u.wish.indexOf(id)>-1)};
+function recs(limit){
+  const u=user(),sc={},sub={},bought=new Set(),hist=(db.views[viewsKey()]||[]).slice(0,15);
+  hist.forEach(id=>{const p=prod(id);if(p){sc[p.cat]=(sc[p.cat]||0)+1;sub[p.sub]=(sub[p.sub]||0)+1.5}});
+  if(u){
+    db.orders.filter(o=>o.userId===u.id&&o.status!=='Cancelled').forEach(o=>o.items.forEach(i=>{bought.add(i.pid);const p=prod(i.pid);if(p){sc[p.cat]=(sc[p.cat]||0)+3;sub[p.sub]=(sub[p.sub]||0)+3}}));
+    u.wish.forEach(id=>{const p=prod(id);if(p){sc[p.cat]=(sc[p.cat]||0)+2;sub[p.sub]=(sub[p.sub]||0)+2}});
+  }
+  const has=Object.keys(sc).length>0;
+  const list=db.products.filter(p=>p.stock>0&&!bought.has(p.id)).map(p=>({p:p,s:(sc[p.cat]||0)*.5+(sub[p.sub]||0)+rate(p).avg*.1+(hist.indexOf(p.id)>-1?-0.8:0)}));
+  list.sort((a,b)=>b.s-a.s);
+  return{has:has,items:list.slice(0,limit).map(x=>x.p)};
+}
+
+/* ---------- ui helpers ---------- */
+function toast(msg,kind){const r=$('#toast-root'),t=document.createElement('div');t.className='toast'+(kind==='warn'?' warn':'');t.textContent=msg;r.appendChild(t);setTimeout(()=>t.remove(),3800)}
+function openModal(inner,cls){const r=$('#modal-root');r.innerHTML='<div class="overlay" data-act="overlay"><div class="dialog '+(cls||'')+'" role="dialog" aria-modal="true" tabindex="-1">'+inner+'</div></div>';document.body.classList.add('lock');const d=$('.dialog',r);if(d)d.focus()}
+function closeModal(){$('#modal-root').innerHTML='';document.body.classList.remove('lock')}
+function go(v){if(location.hash==='#'+v)route();else location.hash='#'+v}
+function showErr(f,msg){const e=$('.err',f);if(e){e.textContent=msg;e.scrollIntoView({block:'nearest'})}}
+const heart='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.700 3.700 4.500 7 4.500c2 0 3.400 1.100 5 3 1.600-1.900 3-3 5-3 3.300 0 5.400 3.200 4.200 6.700-1.700 4.700-9.200 9.300-9.200 9.300z"/></svg>';
+
+/* ---------- header / footer ---------- */
+function header(){
+  const s=db.session,u=user(),wc=u?u.wish.filter(prod).length:0,cc=cartCount();
+  const link=(v,t,x)=>'<a class="nl'+(view===v?' on':'')+'" href="#'+v+'">'+t+(x||'')+'</a>';
+  let nav=link('home','Home')+link('shop','Shop');
+  if(isAdmin())nav+=link('admin','Admin panel')+'<button class="nl" data-act="logout">Log out</button>';
+  else{
+    nav+=link('wishlist','Wish list',wc?'<span class="badge">'+wc+'</span>':'')+link('orders','Orders')+link('cart','Cart',cc?'<span class="badge">'+cc+'</span>':'');
+    nav+=s?'<button class="nl" data-act="logout">Log out</button>':link('login','Log in');
+  }
+  return '<header class="top" id="hdr"><a class="brand" href="#home"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.500" width="10" height="19" rx="2.500"/><path d="M11 18.500h2"/><path d="M10 8.500l2 2 2-2"/></svg>TechSavvy</a>'+
+  '<form class="hsearch" data-form="search" role="search"><input name="q" type="search" placeholder="Search phones, laptops, accessories" aria-label="Search products" value="'+esc(ui.f.q)+'"><button class="btn" type="submit">Search</button></form><nav class="nav" aria-label="Main">'+nav+'</nav></header>';
+}
+function refreshHeader(){const h=$('#hdr');if(h)h.outerHTML=header()}
+const footer=()=>'<footer class="foot"><span>TechSavvy: gadgets from trusted brands, with online-only prices.</span><span>Demo store: accounts and orders stay in this browser. Payments and emails are simulated. Brands shown are fictional.</span></footer>';
+
+/* ---------- product cards ---------- */
+function card(p){
+  const r=rate(p),off=offPct(p),w=wished(p.id);
+  return '<article class="prod"><a class="pimg" href="#product-'+p.id+'" aria-label="'+esc(p.name)+'"><img src="'+img(p)+'" alt="" loading="lazy">'+(off>=1?'<span class="off">-'+off+'%</span>':'')+(p.stock<=0?'<span class="so">Out of stock</span>':'')+'</a><div class="pbody"><span class="by">'+esc(p.brand)+' · '+esc(p.sub)+'</span><h3><a href="#product-'+p.id+'">'+esc(p.name)+'</a></h3><div>'+stars(r.avg)+' <span class="muted sm">'+r.avg.toFixed(1)+' ('+r.n.toLocaleString('en-IN')+')</span></div>'+
+  '<div class="pfoot"><div class="price">'+money(p.price)+(off?'<s>'+money(p.mrp)+'</s>':'')+'</div><div class="acts"><button class="icon'+(w?' on':'')+'" data-act="wish" data-id="'+p.id+'" aria-pressed="'+w+'" aria-label="'+(w?'Remove from':'Add to')+' wish list">'+heart+'</button><button class="btn sm" data-act="add" data-id="'+p.id+'"'+(p.stock<=0?' disabled':'')+'>Add</button></div></div></div></article>';
+}
+const rowOf=list=>'<div class="grid">'+list.map(card).join('')+'</div>';
+
+/* ---------- home ---------- */
+function viewHome(){
+  const cats=catsRanked(),deals=db.products.filter(p=>offPct(p)>=15&&p.stock>0).sort((a,b)=>offPct(b)-offPct(a)).slice(0,4);
+  const rc=recs(4),pop=db.products.slice().sort((a,b)=>b.sold-a.sold).slice(0,4);
+  return '<section class="hero"><span class="eyebrow">Online-only prices</span><h1>The gadgets you want, at prices that make sense.</h1><p>Phones, laptops, tablets and accessories from trusted brands. Pick a category below, or search for exactly what you need.</p><div class="codes" aria-label="Offer codes">'+Object.keys(COUPONS).map(k=>'<span class="code" title="'+esc(COUPONS[k].label)+'">'+k+' · '+esc(COUPONS[k].label)+'</span>').join('')+'</div></section>'+
+  '<section class="stack"><div class="toolbar"><h2>Shop by category</h2><span class="muted sm">Most popular first</span></div><div class="cats">'+cats.map((c,i)=>{
+    const first=db.products.filter(p=>p.cat===c.name).sort((a,b)=>b.sold-a.sold)[0],n=db.products.filter(p=>p.cat===c.name).length;
+    return '<div class="cat"><div class="top2"><img src="'+img(first)+'" alt=""><div><button class="name" data-act="go-cat" data-cat="'+esc(c.name)+'">'+esc(c.name)+'</button>'+(i===0?'<span class="rank">Most popular</span>':'')+'<div class="muted sm">'+n+' product'+(n>1?'s':'')+'</div></div></div><div class="chips" role="group" aria-label="'+esc(c.name)+' subcategories">'+subsOf(c.name).map(s=>'<button class="chip" data-act="go-sub" data-cat="'+esc(c.name)+'" data-sub="'+esc(s)+'">'+esc(s)+'</button>').join('')+'</div></div>';
+  }).join('')+'</div></section>'+
+  (deals.length?'<section class="stack"><div class="toolbar"><h2>Today’s deals</h2><span class="muted sm">Biggest discounts on items in stock</span></div>'+rowOf(deals)+'</section>':'')+
+  '<section class="stack"><div class="toolbar"><h2>'+(rc.has?'Recommended for you':'Popular right now')+'</h2><span class="muted sm">'+(rc.has?'Based on what you viewed, saved and bought':'Our best sellers')+'</span></div>'+rowOf(rc.has?rc.items:pop)+'</section>'+
+  (rc.has?'<section class="stack"><div class="toolbar"><h2>Best sellers</h2></div>'+rowOf(pop)+'</section>':'');
+}
+
+/* ---------- shop ---------- */
+function filtered(){
+  const f=ui.f,q=f.q.trim().toLowerCase();
+  const r=db.products.filter(p=>(f.cat==='All'||p.cat===f.cat)&&(f.sub==='All'||p.sub===f.sub)&&(f.brand==='All'||p.brand===f.brand)&&(!f.stock||p.stock>0)&&(f.min===''||p.price>=+f.min)&&(f.max===''||p.price<=+f.max)&&(!q||(p.name+' '+p.brand+' '+p.cat+' '+p.sub+' '+p.desc).toLowerCase().indexOf(q)>-1));
+  if(f.sort==='low')r.sort((a,b)=>a.price-b.price);else if(f.sort==='high')r.sort((a,b)=>b.price-a.price);else if(f.sort==='rating')r.sort((a,b)=>rate(b).avg-rate(a).avg);else if(f.sort==='discount')r.sort((a,b)=>offPct(b)-offPct(a));else r.sort((a,b)=>b.sold-a.sold);
+  return r;
+}
+function viewShop(){
+  const f=ui.f,cats=catsRanked().map(c=>c.name),subs=f.cat==='All'?[]:subsOf(f.cat),brands=Array.from(new Set(db.products.map(p=>p.brand))).sort();
+  return '<div><h1>Shop</h1></div><div class="shop"><aside class="panel filters" aria-label="Filters"><label class="f">Search<input id="f-q" type="search" placeholder="Name, brand or feature" value="'+esc(f.q)+'"></label><div class="stack" style="gap:8px"><div class="eyebrow">Category</div><div class="chips">'+['All'].concat(cats).map(c=>'<button class="chip'+(f.cat===c?' on':'')+'" data-act="f-cat" data-v="'+esc(c)+'">'+esc(c)+'</button>').join('')+'</div></div>'+
+  (subs.length?'<label class="f">Subcategory<select id="f-sub"><option value="All">All</option>'+subs.map(s=>'<option'+(f.sub===s?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label>':'')+
+  '<label class="f">Brand<select id="f-brand"><option value="All">All brands</option>'+brands.map(b=>'<option'+(f.brand===b?' selected':'')+'>'+esc(b)+'</option>').join('')+'</select></label><div class="row2" style="grid-template-columns:1fr 1fr"><label class="f">Min ₹<input id="f-min" type="number" inputmode="numeric" min="0" value="'+esc(f.min)+'"></label><label class="f">Max ₹<input id="f-max" type="number" inputmode="numeric" min="0" value="'+esc(f.max)+'"></label></div><label class="check"><input type="checkbox" id="f-stock"'+(f.stock?' checked':'')+'> In stock only</label><label class="f">Sort by<select id="f-sort">'+[['popular','Most popular'],['low','Price: low to high'],['high','Price: high to low'],['rating','Rating'],['discount','Discount']].map(o=>'<option value="'+o[0]+'"'+(f.sort===o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select></label><button class="btn ghost" data-act="f-reset">Clear filters</button></aside><section><div class="muted" id="count" style="margin-bottom:12px" aria-live="polite"></div><div class="grid" id="grid"></div></section></div>';
+}
+function renderGrid(){
+  const g=$('#grid');if(!g)return;const r=filtered();
+  $('#count').textContent=r.length+(r.length===1?' product':' products')+' found';
+  g.className=r.length?'grid':'empty';
+  g.innerHTML=r.length?r.map(card).join(''):'<h3>No products match these filters</h3><p class="muted">Try another category or widen the price range.</p><button class="btn ghost" data-act="f-reset">Clear filters</button>';
+}
+
+/* ---------- product page ---------- */
+function viewProduct(){
+  const p=prod(pid);if(!p)return '<div class="empty"><h3>This product is no longer available</h3><a class="btn" href="#shop">Back to shop</a></div>';
+  const r=rate(p),off=offPct(p),st=stockInfo(p),w=wished(p.id),u=user();
+  const revs=db.reviews.filter(x=>x.pid===p.id).sort((a,b)=>b.date.localeCompare(a.date));
+  const more=db.products.filter(x=>x.id!==p.id&&x.stock>0&&(x.sub===p.sub||x.cat===p.cat)).sort((a,b)=>(b.sub===p.sub)-(a.sub===p.sub)||b.sold-a.sold).slice(0,4);
+  if(ui.q>p.stock)ui.q=Math.max(1,p.stock);
+  return '<div class="stack" style="gap:6px"><a href="#shop" class="sm" data-act="to-shop">&larr; Back to shop</a><p class="muted sm">'+esc(p.cat)+' › '+esc(p.sub)+'</p></div><div class="pd"><img src="'+img(p)+'" alt="'+esc(p.name)+'"><div class="buy"><div><span class="by">'+esc(p.brand)+'</span><h1 style="margin-top:4px">'+esc(p.name)+'</h1></div><div>'+stars(r.avg)+' <a href="#product-'+p.id+'" data-act="to-reviews" class="sm">'+r.avg.toFixed(1)+' · '+r.n.toLocaleString('en-IN')+' ratings</a></div>'+
+  '<div><span class="big">'+money(p.price)+(off?'<s>'+money(p.mrp)+'</s>':'')+'</span>'+(off?' <span class="tag deal">'+off+'% off · you save '+money(p.mrp-p.price)+'</span>':'')+'</div><div><span class="pill '+st.c+'" id="avail">'+st.t+'</span> <span class="muted sm">'+(p.stock>0?'Ships in 1 to 2 days':'We will list it again once it is restocked')+'</span></div>'+
+  (isAdmin()?'<div class="notice">You are signed in as admin. Manage this item from the Admin panel.</div>':'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div class="stepper" role="group" aria-label="Quantity"><button data-act="q" data-d="-1" aria-label="Fewer"'+(p.stock<=0?' disabled':'')+'>−</button><span id="q">'+(p.stock>0?ui.q:0)+'</span><button data-act="q" data-d="1" aria-label="More"'+(p.stock<=0?' disabled':'')+'>+</button></div><button class="btn" data-act="add-q" data-id="'+p.id+'"'+(p.stock<=0?' disabled':'')+'>Add to cart</button><button class="btn ghost" data-act="wish" data-id="'+p.id+'" aria-pressed="'+w+'">'+(w?'Saved to wish list':'Save to wish list')+'</button></div>')+
+  '<p class="muted sm">Free delivery above ₹999 · 7-day returns · 1-year brand warranty</p><p>'+esc(p.desc)+'</p><table class="spec"><tbody>'+p.specs.map(s=>'<tr><th scope="row">'+esc(s.k)+'</th><td>'+esc(s.v)+'</td></tr>').join('')+'</tbody></table></div></div>'+
+  '<section class="panel" id="reviews"><h2>Ratings and reviews</h2>'+(revs.length?revs.map(x=>'<div class="rev"><div>'+stars(x.rating)+' <strong>'+esc(x.name)+'</strong> <span class="muted sm">· '+fmtD(x.date)+(x.verified?' · Verified buyer':'')+'</span></div><p>'+esc(x.text)+'</p></div>').join(''):'<p class="muted">No written reviews yet.</p>')+
+  (u?'<form class="stack" data-form="review"><h3>Write a review</h3><div class="row2"><label class="f">Rating<select name="rating"><option value="5">5 stars</option><option value="4">4 stars</option><option value="3">3 stars</option><option value="2">2 stars</option><option value="1">1 star</option></select></label></div><label class="f">Your review<textarea name="text" required maxlength="300" placeholder="What do you like? What could be better?"></textarea></label><p class="err" role="alert"></p><div><button class="btn" type="submit">Post review</button></div></form>':'<p class="muted">'+(isAdmin()?'':'<button class="link" data-act="go-login" data-mode="login" data-after="product-'+p.id+'">Log in</button> to write a review.')+'</p>')+'</section>'+
+  (more.length?'<section class="stack"><h2>You may also like</h2>'+rowOf(more)+'</section>':'');
+}
+
+/* ---------- cart + checkout ---------- */
+function summaryHtml(){
+  const sub=cartSub(),pr=priceOrder(sub,ui.coupon);
+  return '<dl><dt>Items ('+cartCount()+')</dt><dd>'+money(sub)+'</dd>'+(pr.disc?'<dt class="good">Coupon '+esc(ui.coupon)+'</dt><dd class="good">−'+money(pr.disc)+'</dd>':'')+'<dt>Delivery</dt><dd>'+(pr.fee?money(pr.fee):'Free')+'</dd></dl>'+(pr.fee?'<p class="muted sm">Free delivery on orders of ₹999 and above.</p>':'')+'<dl class="tot"><dt>Total</dt><dd>'+money(pr.total)+'</dd></dl>';
+}
+function couponHtml(){
+  const sub=cartSub(),pr=priceOrder(sub,ui.coupon);
+  return '<form class="stack" style="gap:8px" data-form="coupon"><label class="f">Offer code<span style="display:flex;gap:8px"><input name="code" placeholder="WELCOME10" autocomplete="off" value="'+esc(ui.coupon)+'" style="text-transform:uppercase"><button class="btn ghost" type="submit">Apply</button></span></label>'+(ui.coupon?(pr.ok?'<p class="sm" style="color:var(--ok)">Code applied. <button type="button" class="link" data-act="coupon-clear">Remove</button></p>':'<p class="err">'+esc(pr.err)+'</p>'):'<p class="muted sm">Try '+Object.keys(COUPONS).join(', ')+'.</p>')+'</form>';
+}
+function cartLines(){
+  return cartRows().map(r=>{
+    const p=r.p,st=stockInfo(p);
+    return '<div class="line"><a href="#product-'+p.id+'"><img src="'+img(p)+'" alt=""></a><div class="meta"><a href="#product-'+p.id+'">'+esc(p.name)+'</a><span class="muted sm">'+esc(p.brand)+' · '+money(p.price)+' each</span><span class="pill '+st.c+'" style="align-self:flex-start">'+st.t+'</span></div><div class="amt"><span>'+money(p.price*r.it.qty)+'</span><div class="stepper"><button data-act="cart-qty" data-i="'+r.i+'" data-d="-1" aria-label="Fewer">−</button><span>'+r.it.qty+'</span><button data-act="cart-qty" data-i="'+r.i+'" data-d="1" aria-label="More">+</button></div><button class="link sm" data-act="cart-del" data-i="'+r.i+'">Remove</button></div></div>';
+  }).join('');
+}
+function viewCart(){
+  cleanCart();
+  if(!cartRows().length)return '<h1>Your cart</h1><div class="empty"><h3>Your cart is empty</h3><p class="muted">Add a few gadgets and they will show up here.</p><a class="btn" href="#shop">Browse products</a></div>';
+  return '<h1>Your cart</h1><div class="co"><div class="panel"><h2>Items</h2><div id="cart-items">'+cartLines()+'</div></div><aside class="panel sum"><h2>Order summary</h2><div id="coupon">'+couponHtml()+'</div><div id="summary">'+summaryHtml()+'</div><button class="btn block" data-act="checkout">Proceed to checkout</button><a class="btn ghost block" href="#shop">Continue shopping</a></aside></div>';
+}
+function addrText(a){return esc(a.line)+', '+esc(a.area)+', '+esc(a.city)+', '+esc(a.state)+' '+esc(a.pin)}
+function viewCheckout(){
+  cleanCart();const u=user();
+  if(!cartRows().length)return '<h1>Checkout</h1><div class="empty"><h3>Your cart is empty</h3><a class="btn" href="#shop">Browse products</a></div>';
+  if(!u)return '<h1>Checkout</h1><div class="notice">'+(isAdmin()?'You are signed in as admin. Log out and sign in as a customer to place an order.':'Log in to check out.')+'</div>';
+  if(!u.addresses.some(a=>a.id===ui.co.addr))ui.co.addr=u.addresses.length?u.addresses[0].id:null;
+  const c=ui.co,bad=cartRows().filter(r=>r.p.stock<r.it.qty||r.p.stock<=0);
+  return '<h1>Checkout</h1><div class="co"><div class="stack">'+(bad.length?'<div class="notice">Some items are no longer available in the quantity you chose. <a href="#cart">Update your cart</a> to continue.</div>':'')+
+  '<div class="panel"><div class="toolbar"><h2>Delivery address</h2><button class="btn ghost sm" data-act="addr-new">Add address</button></div>'+(u.addresses.length?u.addresses.map(a=>'<div class="addr"><input type="radio" name="addr" id="ad-'+a.id+'" value="'+a.id+'"'+(c.addr===a.id?' checked':'')+'><label class="txt" for="ad-'+a.id+'"><strong>'+esc(a.label)+' · '+esc(a.name)+'</strong><span>'+addrText(a)+'</span><span class="muted sm">Phone '+esc(a.phone)+'</span></label></div>').join(''):'<p class="muted">Add a delivery address to continue.</p>')+'</div>'+
+  '<div class="panel"><h2>Payment</h2><label class="pay-opt"><input type="radio" name="pay" value="upi"'+(c.pay==='upi'?' checked':'')+'> UPI</label><label class="pay-opt"><input type="radio" name="pay" value="card"'+(c.pay==='card'?' checked':'')+'> Debit or credit card</label><label class="pay-opt"><input type="radio" name="pay" value="cod"'+(c.pay==='cod'?' checked':'')+'> Cash on delivery</label>'+
+  '<div id="pay-upi"'+(c.pay==='upi'?'':' hidden')+'><label class="f">UPI ID<input id="co-upi" placeholder="name@bank" autocomplete="off"></label></div><div id="pay-card"'+(c.pay==='card'?'':' hidden')+' class="stack" style="gap:10px"><div class="hint">Test gateway, no money moves. Use <code>4242 4242 4242 4242</code>, any future expiry and any 3 digits. <button type="button" class="link" data-act="fill-card">Fill test card</button></div><label class="f">Card number<input id="co-cardno" inputmode="numeric" autocomplete="off" maxlength="19" placeholder="1234 5678 9012 3456"></label><label class="f">Name on card<input id="co-cardname" autocomplete="off"></label><div class="row2"><label class="f">Expiry (MM/YY)<input id="co-cardexp" inputmode="numeric" maxlength="5" placeholder="08/29" autocomplete="off"></label><label class="f">CVV<input id="co-cardcvv" type="password" inputmode="numeric" maxlength="3" autocomplete="off"></label></div></div><div id="pay-cod"'+(c.pay==='cod'?'':' hidden')+'><p class="muted">Pay the delivery partner in cash or UPI when your order arrives.</p></div></div>'+
+  '<div class="panel"><h2>Review items</h2>'+cartRows().map(r=>'<div class="line" style="grid-template-columns:56px minmax(0,1fr) auto"><img src="'+img(r.p)+'" alt="" style="width:56px;height:44px"><div class="meta"><strong>'+esc(r.p.name)+'</strong><span class="muted sm">Qty '+r.it.qty+'</span></div><strong>'+money(r.p.price*r.it.qty)+'</strong></div>').join('')+'</div></div>'+
+  '<aside class="panel sum"><h2>Order summary</h2><div id="summary">'+summaryHtml()+'</div><p class="err" id="co-err" role="alert"></p><button class="btn block" id="place" data-act="place"'+(bad.length?' disabled':'')+'>Place order</button><a class="btn ghost block" href="#cart">Back to cart</a></aside></div>';
+}
+function luhn(s){let sum=0,alt=false;for(let i=s.length-1;i>=0;i--){let n=+s[i];if(alt){n*=2;if(n>9)n-=9}sum+=n;alt=!alt}return sum%10===0}
+const val=id=>(document.getElementById(id)||{value:''}).value.trim();
+async function placeOrder(btn){
+  const err=$('#co-err'),u=user();err.textContent='';if(!u)return;cleanCart();
+  const fail=m=>{err.textContent=m;err.scrollIntoView({block:'center'})};
+  const rows=cartRows();if(!rows.length)return fail('Your cart is empty.');
+  const addr=u.addresses.find(a=>a.id===ui.co.addr);if(!addr)return fail('Choose a delivery address, or add one.');
+  const short=rows.find(r=>r.p.stock<r.it.qty);if(short)return fail(short.p.name+' has only '+short.p.stock+' left. Update your cart.');
+  let pay;
+  if(ui.co.pay==='upi'){if(!/^[\w.\-]{2,}@[a-z]{2,}$/i.test(val('co-upi')))return fail('Enter a valid UPI ID, for example name@bank.');pay={method:'UPI',status:'Paid',ref:'UPI'+Math.floor(1e8+Math.random()*9e8)}}
+  else if(ui.co.pay==='card'){
+    const dg=val('co-cardno').replace(/\s/g,'');
+    if(!/^\d{16}$/.test(dg)||!luhn(dg))return fail('That card number is not valid. Check the 16 digits.');
+    if(!val('co-cardname'))return fail('Enter the name on the card.');
+    const mm=val('co-cardexp').match(/^(\d{2})\/(\d{2})$/);if(!mm||+mm[1]<1||+mm[1]>12)return fail('Enter the expiry as MM/YY.');
+    const n=new Date(),ey=2000+ +mm[2],em=+mm[1];if(ey<n.getFullYear()||(ey===n.getFullYear()&&em<n.getMonth()+1))return fail('This card has expired.');
+    if(!/^\d{3}$/.test(val('co-cardcvv')))return fail('Enter the 3-digit CVV.');
+    pay={method:'Card',status:'Paid',ref:'Card •••• '+dg.slice(-4)};
+  }else pay={method:'Cash on delivery',status:'Pay on delivery',ref:'COD'};
+  btn.disabled=true;btn.textContent=ui.co.pay==='cod'?'Placing order…':'Processing payment…';
+  await new Promise(r=>setTimeout(r,1200));
+  const again=cartRows(),gone=again.find(r=>r.p.stock<r.it.qty);
+  if(gone){btn.disabled=false;btn.textContent='Place order';return fail(gone.p.name+' just sold out. Update your cart.')}
+  const o=mkOrder(u,addr,again.map(r=>({pid:r.p.id,qty:r.it.qty})),ui.coupon,pay,'Placed',0,false);
+  again.forEach(r=>{r.p.stock-=r.it.qty;r.p.sold+=r.it.qty});
+  db.orders.push(o);db.carts[ckey()]=[];ui.coupon='';save();refreshHeader();
+  openModal('<div class="dhead"><h2>Order '+o.id+' placed</h2><button class="x" data-act="close" aria-label="Close">×</button></div><p>Thank you, '+esc(u.name.split(' ')[0])+'. '+(pay.status==='Paid'?'Payment received ('+esc(pay.ref)+'). ':'You will pay on delivery. ')+'We have sent your order to the seller and a confirmation to '+esc(u.email)+'.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-act="close">Track my order</button><button class="btn ghost" data-act="show-mail" data-id="'+o.id+'" data-who="customer">View confirmation email</button></div>','narrow');
+  go('orders');
+}
+function mailText(o,who){
+  const lines=o.items.map(i=>'  • '+i.name+' × '+i.qty+'   '+money(i.price*i.qty)).join('\n'),a=o.address;
+  const tail='\n\nItems: '+money(o.subtotal)+(o.discount?'\nCoupon '+o.coupon+': −'+money(o.discount):'')+'\nDelivery: '+(o.fee?money(o.fee):'Free')+'\nTotal: '+money(o.total)+'\nPayment: '+o.pay.method+' ('+o.pay.status+', '+o.pay.ref+')\n\nDeliver to: '+a.name+', '+a.line+', '+a.area+', '+a.city+', '+a.state+' '+a.pin+', phone '+a.phone;
+  if(who==='seller')return 'To: orders@techsavvy.test\nSubject: New order '+o.id+' from '+o.customer.name+'\n\nA new order is waiting to be confirmed and packed.\n\n'+lines+tail;
+  return 'To: '+o.customer.email+'\nSubject: Order '+o.id+' confirmed - TechSavvy\n\nHi '+o.customer.name.split(' ')[0]+',\n\nThank you for your order.\n\n'+lines+tail+'\n\nTrack it any time under Orders.\n\nTechSavvy';
+}
+
+/* ---------- wishlist + orders ---------- */
+function viewWishlist(){
+  const u=user();if(!u)return '';
+  const l=u.wish.map(prod).filter(Boolean);
+  return '<div><h1>Wish list</h1><p class="muted" style="margin-top:6px">Gadgets you have saved for later.</p></div>'+(l.length?rowOf(l):'<div class="empty"><h3>Nothing saved yet</h3><p class="muted">Tap the heart on any product to save it here.</p><a class="btn" href="#shop">Browse products</a></div>');
+}
+function orderItems(o){return '<ul class="lines">'+o.items.map(i=>{const p=prod(i.pid);return '<li><span class="l"><img src="'+(p?img(p):artURI(i.kind,i.hue))+'" alt=""><span class="n">'+(p?'<a href="#product-'+p.id+'">'+esc(i.name)+'</a>':esc(i.name))+' × '+i.qty+'<small>'+esc(i.brand)+' · '+money(i.price)+' each</small></span></span><span>'+money(i.price*i.qty)+'</span></li>'}).join('')+'</ul>'}
+function stepsHtml(o){
+  if(o.status==='Cancelled')return '';const idx=STATUS.indexOf(o.status);
+  return '<ol class="steps" aria-label="Delivery progress">'+STATUS.map((s,i)=>'<li class="'+(i<=idx?'done':'')+(i===idx?' now':'')+'"'+(i===idx?' aria-current="step"':'')+'>'+s+'</li>').join('')+'</ol>';
+}
+function orderCard(o){
+  const can=o.status==='Placed'||o.status==='Confirmed';
+  return '<article class="ocard"><div class="ohead"><div><strong>'+o.id+'</strong>'+(o.sample?'<span class="tag alt">Sample order</span>':'')+'<div class="muted sm">Placed '+fmtDT(o.createdAt)+'</div></div><span class="pill st-'+o.status+'">'+o.status+'</span></div>'+orderItems(o)+stepsHtml(o)+'<div class="where"><b>Order status:</b> '+esc(o.location)+'</div>'+
+  '<div class="oinfo"><div><b>Delivering to</b>'+esc(o.address.name)+', '+addrText(o.address)+'</div><div><b>Payment</b>'+esc(o.pay.method)+' · '+esc(o.pay.status)+'</div><div><b>Total</b>'+money(o.total)+(o.discount?' (saved '+money(o.discount)+' with '+esc(o.coupon)+')':'')+'</div></div>'+
+  '<details><summary class="sm" style="cursor:pointer;font-weight:700">Status history</summary><ul class="hist" style="margin-top:8px">'+o.history.slice().reverse().map(h=>'<li>'+fmtDT(h.at)+' · '+esc(h.status)+' · '+esc(h.loc)+'</li>').join('')+'</ul></details>'+
+  '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" data-act="show-mail" data-id="'+o.id+'" data-who="customer">Confirmation email</button><button class="btn ghost sm" data-act="buy-again" data-id="'+o.id+'">Buy again</button>'+(can?(ui.confirm==='c-'+o.id?'<button class="btn danger sm" data-act="cancel-go" data-id="'+o.id+'">Confirm cancel order</button>':'<button class="btn danger sm" data-act="cancel-ask" data-id="'+o.id+'">Cancel order</button>'):'')+'</div></article>';
+}
+function viewOrders(){
+  const u=user();if(!u)return '';
+  const l=db.orders.filter(o=>o.userId===u.id).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+  const act=l.filter(o=>o.status!=='Delivered'&&o.status!=='Cancelled'),past=l.filter(o=>act.indexOf(o)<0);
+  if(!l.length)return '<div><h1>Orders</h1></div><div class="empty"><h3>No orders yet</h3><p class="muted">Your orders and their delivery status will appear here.</p><a class="btn" href="#shop">Browse products</a></div>';
+  return '<div><h1>Orders</h1><p class="muted" style="margin-top:6px">Check the status of an order or look back at past purchases.</p></div>'+(act.length?'<section class="stack"><h2>In progress</h2>'+act.map(orderCard).join('')+'</section>':'')+(past.length?'<section class="stack"><h2>Order history</h2>'+past.map(orderCard).join('')+'</section>':'');
+}
+function openAddr(id){
+  const u=user();if(!u)return;
+  let a=id?u.addresses.find(x=>x.id===id):null;a=a||{label:'Home',name:u.name,phone:u.phone,line:'',area:'',city:'',state:'',pin:''};
+  openModal('<div class="dhead"><h2>'+(id?'Edit address':'Add delivery address')+'</h2><button class="x" data-act="close" aria-label="Close">×</button></div><form class="stack" data-form="addr"><input type="hidden" name="id" value="'+esc(id||'')+'"><div class="row2"><label class="f">Label<select name="label">'+['Home','Work','Other'].map(l=>'<option'+(a.label===l?' selected':'')+'>'+l+'</option>').join('')+'</select></label><label class="f">Receiver name<input name="name" required value="'+esc(a.name)+'"></label></div><label class="f">Phone (10 digits)<input name="phone" inputmode="numeric" maxlength="10" required value="'+esc(a.phone)+'"></label><label class="f">House no. and street<input name="line" required value="'+esc(a.line)+'"></label><label class="f">Area<input name="area" required value="'+esc(a.area)+'"></label><div class="row2"><label class="f">City<input name="city" required value="'+esc(a.city)+'"></label><label class="f">State<input name="state" required value="'+esc(a.state)+'"></label></div><label class="f">PIN code<input name="pin" inputmode="numeric" maxlength="6" required value="'+esc(a.pin)+'"></label><p class="err" role="alert"></p><button class="btn" type="submit">Save address</button></form>','narrow');
+}
+
+/* ---------- auth ---------- */
+function viewAuth(){
+  const admin=ui.authRole==='admin',reg=!admin&&ui.authMode==='register';
+  return '<div class="auth stack"><h1>'+(admin?'Admin log in':reg?'Create your account':'Welcome back')+'</h1>'+(ui.notice?'<div class="notice">'+esc(ui.notice)+'</div>':'')+
+  '<div class="seg" role="group" aria-label="Account type"><button class="'+(!admin?'on':'')+'" data-act="auth-role" data-v="customer">Customer</button><button class="'+(admin?'on':'')+'" data-act="auth-role" data-v="admin">Admin</button></div><form class="panel" data-form="'+(reg?'register':'login')+'">'+
+  (reg?'<label class="f">Full name<input name="name" required autocomplete="name"></label><label class="f">Email<input name="email" type="email" required autocomplete="email"></label><label class="f">Mobile number<input name="phone" inputmode="numeric" maxlength="10" required autocomplete="tel" placeholder="10 digits"></label><label class="f">Password (6+ characters)<input name="pw" type="password" minlength="6" required autocomplete="new-password"></label><label class="f">Confirm password<input name="pw2" type="password" minlength="6" required autocomplete="new-password"></label>':'<label class="f">'+(admin?'Admin username':'Email')+'<input name="id" '+(admin?'':'type="email" ')+'required autocomplete="username"></label><label class="f">Password<input name="pw" type="password" required autocomplete="current-password"></label>')+
+  '<p class="err" role="alert"></p><button class="btn" type="submit">'+(reg?'Create account':'Log in')+'</button></form>'+
+  (admin?'<div class="hint">Demo admin: <code>admin</code> / <code>admin123</code></div>':reg?'<p class="muted">Already registered? <button class="link" data-act="auth-mode" data-v="login">Log in</button></p>':'<div class="hint">Try the sample customer: <code>sample@techsavvy.test</code> / <code>sample123</code></div><p class="muted">New here? <button class="link" data-act="auth-mode" data-v="register">Create an account</button></p>')+'</div>';
+}
+async function onLogin(f){
+  const fd=new FormData(f),id=String(fd.get('id')).trim().toLowerCase(),ph=await hash(String(fd.get('pw')));
+  if(ui.authRole==='admin'){
+    if(id===db.admin.user&&ph===db.admin.pass){db.session={role:'admin'};save();ui.notice='';ui.after=null;toast('Signed in as admin');go('admin')}else showErr(f,'Admin username or password is wrong.');return;
+  }
+  const u=db.users.find(x=>x.email===id);if(!u||u.pass!==ph)return showErr(f,'Email or password is wrong.');
+  db.session={role:'user',id:u.id};mergeGuest(u.id);save();ui.notice='';const to=ui.after||'home';ui.after=null;toast('Welcome back, '+u.name.split(' ')[0]);go(to);
+}
+async function onRegister(f){
+  const fd=new FormData(f),name=String(fd.get('name')).trim(),email=String(fd.get('email')).trim().toLowerCase(),phone=String(fd.get('phone')).trim(),pw=String(fd.get('pw'));
+  if(name.length<2)return showErr(f,'Enter your full name.');
+  if(!/^\S+@\S+\.\S+$/.test(email))return showErr(f,'Enter a valid email address.');
+  if(!/^\d{10}$/.test(phone))return showErr(f,'Mobile number must be 10 digits.');
+  if(pw.length<6)return showErr(f,'Password needs at least 6 characters.');
+  if(pw!==String(fd.get('pw2')))return showErr(f,'The two passwords do not match.');
+  if(db.users.some(u=>u.email===email))return showErr(f,'An account with this email already exists. Try logging in.');
+  const u={id:uid('u'),name:name,email:email,phone:phone,pass:await hash(pw),sample:false,joined:new Date().toISOString(),addresses:[],wish:[]};
+  db.users.push(u);db.session={role:'user',id:u.id};mergeGuest(u.id);save();ui.notice='';const to=ui.after||'home';ui.after=null;toast('Account created. Welcome, '+name.split(' ')[0]+'.');go(to);
+}
+
+/* ---------- admin ---------- */
+function viewAdmin(){
+  const rev=db.orders.filter(o=>o.status!=='Cancelled').reduce((s,o)=>s+o.total,0),open=db.orders.filter(o=>o.status!=='Delivered'&&o.status!=='Cancelled').length,low=db.products.filter(p=>p.stock<=5).length;
+  const tabs=[['products','Items'],['orders','Orders'],['customers','Customers']];
+  let body='';if(ui.aTab==='orders')body=adminOrders();else if(ui.aTab==='customers')body=adminCustomers();else body=adminProducts();
+  return '<div><span class="eyebrow">Admin panel</span><h1>Store manager</h1></div><div class="stats"><div><b>'+db.products.length+'</b><span>Items listed</span></div><div><b>'+low+'</b><span>Low or out of stock</span></div><div><b>'+db.orders.length+'</b><span>Orders</span></div><div><b>'+open+'</b><span>Open orders</span></div><div><b>'+money(rev)+'</b><span>Sales</span></div></div><div class="tabs" role="tablist">'+tabs.map(t=>'<button class="tab'+(ui.aTab===t[0]?' on':'')+'" role="tab" data-act="a-tab" data-v="'+t[0]+'">'+t[1]+'</button>').join('')+'</div><div class="stack" id="a-body">'+body+'</div><div>'+(ui.confirm==='reset'?'<button class="btn danger sm" data-act="reset-demo">Confirm: erase everything and restore the sample data</button>':'<button class="link sm" data-act="reset-ask">Reset demo data</button>')+'</div>';
+}
+function adminProducts(){
+  const cats=catsRanked().map(c=>c.name);
+  const l=db.products.filter(p=>ui.aCat==='All'||p.cat===ui.aCat);
+  return '<div class="toolbar"><h2>Manage items</h2><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><select id="adm-cat" style="width:auto" aria-label="Filter by category"><option>All</option>'+cats.map(c=>'<option'+(ui.aCat===c?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select><button class="btn" data-act="prod-new">Add new item</button></div></div>'+(l.length?l.map(p=>{const st=stockInfo(p);return '<div class="row"><img src="'+img(p)+'" alt=""><div class="grow"><strong>'+esc(p.name)+'</strong><span class="muted sm">'+esc(p.brand)+' · '+esc(p.cat)+' › '+esc(p.sub)+'</span><span><span class="pill '+st.c+'">'+st.t+(p.stock>5?' ('+p.stock+')':'')+'</span> <span class="muted sm">MRP '+money(p.mrp)+'</span></span></div><div class="acts"><div class="pr"><label class="sr" for="pr-'+p.id+'" style="position:absolute;left:-9999px">Price for '+esc(p.name)+'</label><input id="pr-'+p.id+'" type="number" min="1" inputmode="numeric" value="'+p.price+'"><button class="btn ghost sm" data-act="price-set" data-id="'+p.id+'">Set price</button></div><button class="btn ghost sm" data-act="prod-edit" data-id="'+p.id+'">Edit</button>'+(ui.confirm==='pd-'+p.id?'<button class="btn danger sm" data-act="prod-del" data-id="'+p.id+'">Confirm remove</button>':'<button class="btn danger sm" data-act="prod-ask" data-id="'+p.id+'">Remove</button>')+'</div></div>'}).join(''):'<div class="empty"><p class="muted">No items in this category.</p></div>');
+}
+function openProd(id){
+  const p=id?prod(id):{name:'',brand:'',cat:'Smartphones',sub:'',price:'',mrp:'',stock:10,desc:'',specs:[],kind:'phone',hue:Math.floor(Math.random()*360)};
+  ui.img=id?p.image:null;
+  const cats=catsRanked().map(c=>c.name),subs=Array.from(new Set(db.products.map(x=>x.sub)));
+  openModal('<div class="dhead"><h2>'+(id?'Edit item':'Add new item')+'</h2><button class="x" data-act="close" aria-label="Close">×</button></div><form class="stack" data-form="prod"><input type="hidden" name="id" value="'+esc(id||'')+'"><div class="row2"><label class="f">Item name<input name="name" required maxlength="60" value="'+esc(p.name)+'"></label><label class="f">Brand<input name="brand" required maxlength="30" value="'+esc(p.brand)+'"></label></div><div class="row2"><label class="f">Category<input name="cat" list="dl-cat" required value="'+esc(p.cat)+'"></label><label class="f">Subcategory<input name="sub" list="dl-sub" required placeholder="Flagship" value="'+esc(p.sub)+'"></label></div><datalist id="dl-cat">'+cats.map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist><datalist id="dl-sub">'+subs.map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist><div class="row2"><label class="f">Selling price (₹)<input name="price" type="number" min="1" required value="'+esc(p.price)+'"></label><label class="f">List price / MRP (₹)<input name="mrp" type="number" min="1" required value="'+esc(p.mrp)+'"></label><label class="f">Stock<input name="stock" type="number" min="0" required value="'+esc(p.stock)+'"></label></div><label class="f">Description<textarea name="desc" required maxlength="400">'+esc(p.desc)+'</textarea></label><label class="f">Specifications (one per line, like “Battery: 5,000 mAh”)<textarea name="specs" maxlength="600">'+esc(p.specs.map(s=>s.k+': '+s.v).join('\n'))+'</textarea></label><div><div class="eyebrow" style="margin-bottom:6px">Photo</div><div class="preview"><img id="img-prev" src="'+(ui.img||artURI(p.kind,p.hue))+'" alt="Photo preview"><div class="stack" style="gap:8px"><input type="file" id="prod-img-file" accept="image/*"><button type="button" class="link sm" data-act="img-clear">Use the drawn picture instead</button></div></div></div><p class="err" role="alert"></p><button class="btn" type="submit">'+(id?'Save changes':'Add item')+'</button></form>');
+}
+function readImage(file){
+  return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const im=new Image();im.onerror=rej;im.onload=()=>{const r=Math.min(1,720/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*r);cv.height=Math.round(im.height*r);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',.8))};im.src=fr.result};fr.readAsDataURL(file)});
+}
+function adminOrders(){
+  const l=db.orders.filter(o=>ui.ordF==='All'||o.status===ui.ordF).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+  return '<div class="toolbar"><h2>Manage orders</h2><label class="f" style="flex-direction:row;align-items:center;gap:8px">Show<select id="adm-ord-f" style="width:auto"><option>All</option>'+ALLST.map(s=>'<option'+(ui.ordF===s?' selected':'')+'>'+s+'</option>').join('')+'</select></label></div>'+(l.length?l.map(o=>'<article class="ocard"><div class="ohead"><div><strong>'+o.id+'</strong>'+(o.sample?'<span class="tag alt">Sample</span>':'')+'<div class="muted sm">'+fmtDT(o.createdAt)+' · '+esc(o.customer.name)+' · '+esc(o.customer.phone)+'</div></div><span class="pill st-'+o.status+'">'+o.status+'</span></div>'+orderItems(o)+'<div class="oinfo"><div><b>Ship to</b>'+esc(o.address.name)+', '+addrText(o.address)+'</div><div><b>Payment</b>'+esc(o.pay.method)+' · '+esc(o.pay.status)+'</div><div><b>Total</b>'+money(o.total)+'</div></div><div class="oedit"><label class="f">Order status<select id="st-'+o.id+'">'+ALLST.map(s=>'<option'+(o.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select></label><label class="f">Status note shown to the customer<input id="lc-'+o.id+'" maxlength="90" value="'+esc(o.location)+'"></label><button class="btn" data-act="ord-update" data-id="'+o.id+'">Update</button></div><div><button class="btn ghost sm" data-act="show-mail" data-id="'+o.id+'" data-who="seller">Seller email</button></div></article>').join(''):'<div class="empty"><p class="muted">No orders with this status.</p></div>');
+}
+function adminCustomers(){
+  const withO=db.users.filter(u=>db.orders.some(o=>o.userId===u.id)),l=ui.cuF==='orders'?withO:db.users;
+  return '<div class="toolbar"><h2>Customers</h2><label class="f" style="flex-direction:row;align-items:center;gap:8px">Show<select id="adm-cu" style="width:auto"><option value="orders"'+(ui.cuF==='orders'?' selected':'')+'>Customers who checked out</option><option value="all"'+(ui.cuF==='all'?' selected':'')+'>All registered customers</option></select></label></div>'+(l.length?l.map(u=>{
+    const os=db.orders.filter(o=>o.userId===u.id).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)),spent=os.filter(o=>o.status!=='Cancelled').reduce((s,o)=>s+o.total,0);
+    const addrs=[];os.forEach(o=>{const k=o.address.line+o.address.pin;if(!addrs.some(a=>a.line+a.pin===k))addrs.push(o.address)});u.addresses.forEach(a=>{if(!addrs.some(x=>x.line+x.pin===a.line+a.pin))addrs.push(a)});
+    return '<details class="cu"><summary><span><strong>'+esc(u.name)+'</strong>'+(u.sample?' <span class="tag alt">Sample</span>':'')+'<span class="muted sm"> · '+esc(u.email)+' · '+esc(u.phone)+'</span></span><span class="sm"><b>'+os.length+'</b> order'+(os.length===1?'':'s')+' · <b>'+money(spent)+'</b> spent</span></summary><div class="in"><div><b>Joined:</b> '+fmtD(u.joined)+(os.length?' · <b>Last order:</b> '+fmtD(os[0].createdAt):'')+'</div><div><b>Addresses</b>'+(addrs.length?'<ul class="hist">'+addrs.map(a=>'<li>'+esc(a.name)+', '+addrText(a)+' · '+esc(a.phone)+'</li>').join('')+'</ul>':' <span class="muted">None saved</span>')+'</div>'+(os.length?'<div class="tw"><table class="t"><thead><tr><th>Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody>'+os.map(o=>'<tr><td>'+o.id+'</td><td>'+fmtD(o.createdAt)+'</td><td>'+o.items.map(i=>esc(i.name)+' ×'+i.qty).join(', ')+'</td><td>'+money(o.total)+'</td><td>'+o.status+'</td></tr>').join('')+'</tbody></table></div>':'')+'</div></details>';
+  }).join(''):'<div class="empty"><p class="muted">No customers have checked out yet.</p></div>');
+}
+
+/* ---------- routing + render ---------- */
+const VIEWS={home:viewHome,shop:viewShop,product:viewProduct,cart:viewCart,checkout:viewCheckout,wishlist:viewWishlist,orders:viewOrders,login:viewAuth,admin:viewAdmin};
+function render(){
+  $('#app').innerHTML=header()+'<main id="main">'+VIEWS[view]()+'</main>'+footer();
+  if(view==='shop')renderGrid();
+}
+function route(){
+  let h=(location.hash||'#home').slice(1),id=null;
+  if(h.indexOf('product-')===0){id=h.slice(8);h='product'}
+  if(!VIEWS[h])h='home';
+  if(h==='admin'&&!isAdmin()){h='login';ui.authRole='admin';ui.notice='Log in as admin to open the admin panel.'}
+  else if((h==='orders'||h==='wishlist')&&!user()){if(isAdmin()){h='admin'}else{h='login';ui.authRole='customer';ui.authMode='login';ui.notice='Log in to see this page.';ui.after=ui.after||h}}
+  else if(h==='checkout'&&!user()&&!isAdmin()){h='login';ui.authRole='customer';ui.authMode='login';ui.notice='Log in to check out. Your cart is kept.';ui.after='checkout'}
+  else if(h==='login'&&db.session){h=isAdmin()?'admin':'home'}
+  else if(h!=='login')ui.notice='';
+  if(h==='product'){if(prod(id)){if(pid!==id)ui.q=1;trackView(id);save()}}
+  view=h;pid=id;ui.confirm=null;render();window.scrollTo(0,0);
+}
+
+/* ---------- events ---------- */
+const ACT={
+  overlay:(t,e)=>{if(e.target===t)closeModal()},
+  close:()=>closeModal(),
+  'go-cat':t=>{ui.f=Object.assign({},ui.f,{q:'',cat:t.dataset.cat,sub:'All',brand:'All',min:'',max:'',stock:false});go('shop')},
+  'go-sub':t=>{ui.f=Object.assign({},ui.f,{q:'',cat:t.dataset.cat,sub:t.dataset.sub,brand:'All',min:'',max:'',stock:false});go('shop')},
+  'f-cat':t=>{ui.f.cat=t.dataset.v;ui.f.sub='All';render()},
+  'f-reset':()=>{ui.f={q:'',cat:'All',sub:'All',brand:'All',min:'',max:'',stock:false,sort:'popular'};render()},
+  'to-shop':(t,e)=>{e.preventDefault();go('shop')},
+  'to-reviews':(t,e)=>{e.preventDefault();const r=$('#reviews');if(r)r.scrollIntoView({block:'start'})},
+  add:t=>{if(isAdmin()){toast('Log in as a customer to shop.','warn');return}const p=prod(t.dataset.id);if(addToCart(t.dataset.id,1)){save();refreshHeader();toast(p.name+' added to cart')}else{save();refreshHeader()}},
+  q:t=>{const p=prod(pid);ui.q=Math.max(1,Math.min(Math.max(1,p.stock),10,ui.q+ +t.dataset.d));$('#q').textContent=ui.q},
+  'add-q':t=>{const p=prod(t.dataset.id);if(addToCart(p.id,ui.q)){save();refreshHeader();toast(ui.q+' × '+p.name+' added to cart')}else{save();refreshHeader()}},
+  wish:t=>{
+    const u=user();if(!u){if(isAdmin()){toast('Log in as a customer to save items.','warn');return}ui.authRole='customer';ui.authMode='login';ui.after=view==='product'?'product-'+pid:view;ui.notice='Log in to save items to your wish list.';go('login');return}
+    const i=u.wish.indexOf(t.dataset.id);if(i>-1)u.wish.splice(i,1);else u.wish.push(t.dataset.id);save();render();toast(i>-1?'Removed from wish list':'Saved to wish list');
+  },
+  'cart-qty':t=>{const it=cart()[+t.dataset.i],p=it&&prod(it.pid);if(!it||!p)return;const n=it.qty+ +t.dataset.d;if(n>p.stock){toast('Only '+p.stock+' available.','warn');return}it.qty=Math.max(1,n);save();$('#cart-items').innerHTML=cartLines();$('#summary').innerHTML=summaryHtml();$('#coupon').innerHTML=couponHtml();refreshHeader()},
+  'cart-del':t=>{cart().splice(+t.dataset.i,1);save();refreshHeader();render()},
+  'coupon-clear':()=>{ui.coupon='';const c=$('#coupon');if(c)c.innerHTML=couponHtml();const s=$('#summary');if(s)s.innerHTML=summaryHtml()},
+  checkout:()=>go('checkout'),
+  'go-login':t=>{ui.authRole='customer';ui.authMode=t.dataset.mode;ui.after=t.dataset.after||'home';ui.notice='';go('login')},
+  'auth-role':t=>{ui.authRole=t.dataset.v;ui.notice='';render()},
+  'auth-mode':t=>{ui.authMode=t.dataset.v;ui.notice='';render()},
+  logout:()=>{db.session=null;ui.co={addr:null,pay:'upi'};save();toast('You are logged out');go('home')},
+  'addr-new':()=>openAddr(null),
+  'fill-card':()=>{$('#co-cardno').value='4242 4242 4242 4242';$('#co-cardname').value=(user()||{name:'Test Customer'}).name;$('#co-cardexp').value='12/30';$('#co-cardcvv').value='123'},
+  place:t=>placeOrder(t),
+  'show-mail':t=>{const o=db.orders.find(x=>x.id===t.dataset.id);if(!o)return;openModal('<div class="dhead"><h2>'+(t.dataset.who==='seller'?'Order email to the seller':'Confirmation email')+'</h2><button class="x" data-act="close" aria-label="Close">×</button></div><pre class="mail">'+esc(mailText(o,t.dataset.who))+'</pre><p class="muted sm">This is a preview. A page like this has no mail server, so nothing is sent. A backend (for example Node.js with Nodemailer) could send this text.</p>','narrow')},
+  'cancel-ask':t=>{ui.confirm='c-'+t.dataset.id;render()},
+  'cancel-go':t=>{
+    const o=db.orders.find(x=>x.id===t.dataset.id);if(!o||(o.status!=='Placed'&&o.status!=='Confirmed'))return;
+    o.items.forEach(i=>{const p=prod(i.pid);if(p){p.stock+=i.qty;p.sold=Math.max(0,p.sold-i.qty)}});
+    o.status='Cancelled';o.location=o.pay.status==='Paid'?'Order cancelled. Refund of '+money(o.total)+' to your '+o.pay.method+' within 5 to 7 days':'Order cancelled';o.history.push({status:'Cancelled',at:new Date().toISOString(),loc:o.location});
+    ui.confirm=null;save();render();toast('Order '+o.id+' cancelled');
+  },
+  'buy-again':t=>{const o=db.orders.find(x=>x.id===t.dataset.id);let n=0;o.items.forEach(i=>{if(prod(i.pid)&&addToCart(i.pid,i.qty))n++});save();refreshHeader();if(n){toast('Items added to your cart');go('cart')}else toast('These items are not available right now.','warn')},
+  'a-tab':t=>{ui.aTab=t.dataset.v;ui.confirm=null;render()},
+  'ord-update':t=>{
+    const o=db.orders.find(x=>x.id===t.dataset.id);if(!o)return;
+    const st=$('#st-'+o.id).value;let loc=$('#lc-'+o.id).value.trim();const changed=st!==o.status;
+    if(o.status==='Cancelled'&&changed){toast('A cancelled order cannot be reopened.','warn');return}
+    if(!loc||(changed&&loc===o.location))loc=defLoc(st,o);
+    if(!changed&&loc===o.location){toast('Nothing to update');return}
+    if(changed&&st==='Cancelled')o.items.forEach(i=>{const p=prod(i.pid);if(p){p.stock+=i.qty;p.sold=Math.max(0,p.sold-i.qty)}});
+    if(changed&&st==='Delivered'&&o.pay.status==='Pay on delivery')o.pay.status='Paid';
+    o.status=st;o.location=loc;o.history.push({status:st,at:new Date().toISOString(),loc:loc});save();render();toast('Order '+o.id+' is now '+st);
+  },
+  'prod-new':()=>openProd(null),
+  'prod-edit':t=>openProd(t.dataset.id),
+  'prod-ask':t=>{ui.confirm='pd-'+t.dataset.id;render()},
+  'prod-del':t=>{const p=prod(t.dataset.id);db.products=db.products.filter(x=>x.id!==t.dataset.id);ui.confirm=null;save();render();toast((p?p.name:'Item')+' removed from the store')},
+  'price-set':t=>{
+    const p=prod(t.dataset.id),v=Math.round(+document.getElementById('pr-'+p.id).value);
+    if(!(v>0)){toast('Enter a price above zero.','warn');return}
+    if(v>p.mrp)p.mrp=v;p.price=v;save();render();toast(p.name+' is now '+money(v));
+  },
+  'img-clear':()=>{ui.img=null;const f=$('form[data-form=prod]');const p=$('#img-prev');if(p)p.src=artURI('phone',200)},
+  'reset-ask':()=>{ui.confirm='reset';render()},
+  'reset-demo':async()=>{ui.confirm=null;await seed();ui.coupon='';save();toast('Sample data restored. Please log in again.');route()}
+};
+document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t)return;const fn=ACT[t.dataset.act];if(fn)fn(t,e)});
+document.addEventListener('input',e=>{
+  const t=e.target,id=t.id;
+  if(id==='f-q'){ui.f.q=t.value;renderGrid()}
+  else if(id==='f-min'){ui.f.min=t.value;renderGrid()}
+  else if(id==='f-max'){ui.f.max=t.value;renderGrid()}
+  else if(id==='co-cardno'){t.value=t.value.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim()}
+  else if(id==='co-cardexp'){const x=t.value.replace(/\D/g,'').slice(0,4);t.value=x.length>2?x.slice(0,2)+'/'+x.slice(2):x}
+  else if(id==='co-cardcvv'){t.value=t.value.replace(/\D/g,'').slice(0,3)}
+});
+document.addEventListener('change',e=>{
+  const t=e.target,id=t.id;
+  if(id==='f-sub'){ui.f.sub=t.value;renderGrid()}
+  else if(id==='f-brand'){ui.f.brand=t.value;renderGrid()}
+  else if(id==='f-sort'){ui.f.sort=t.value;renderGrid()}
+  else if(id==='f-stock'){ui.f.stock=t.checked;renderGrid()}
+  else if(t.name==='addr'){ui.co.addr=t.value}
+  else if(t.name==='pay'){ui.co.pay=t.value;['upi','card','cod'].forEach(k=>{const el=$('#pay-'+k);if(el)el.hidden=k!==t.value})}
+  else if(id==='adm-cat'){ui.aCat=t.value;render()}
+  else if(id==='adm-ord-f'){ui.ordF=t.value;render()}
+  else if(id==='adm-cu'){ui.cuF=t.value;render()}
+  else if(id==='prod-img-file'&&t.files&&t.files[0]){readImage(t.files[0]).then(url=>{ui.img=url;const p=$('#img-prev');if(p)p.src=url}).catch(()=>showErr(t.closest('form'),'That file could not be read as an image. Try a JPG or PNG.'))}
+});
+document.addEventListener('submit',e=>{
+  const f=e.target.closest('form[data-form]');if(!f)return;e.preventDefault();
+  const k=f.dataset.form,fd=new FormData(f);
+  if(k==='login')return onLogin(f);
+  if(k==='register')return onRegister(f);
+  if(k==='search'){ui.f=Object.assign({},ui.f,{q:String(fd.get('q')).trim(),cat:'All',sub:'All',brand:'All',min:'',max:'',stock:false});go('shop');return}
+  if(k==='coupon'){const code=String(fd.get('code')).trim().toUpperCase();ui.coupon=code;$('#coupon').innerHTML=couponHtml();$('#summary').innerHTML=summaryHtml();return}
+  if(k==='review'){
+    const u=user(),text=String(fd.get('text')).trim();if(!text)return showErr(f,'Please write a few words.');
+    const verified=db.orders.some(o=>o.userId===u.id&&o.status!=='Cancelled'&&o.items.some(i=>i.pid===pid));
+    db.reviews.push({id:uid('r'),pid:pid,name:u.name,rating:+fd.get('rating'),text:text,date:new Date().toISOString(),verified:verified,seed:false,userId:u.id});save();render();toast('Thanks for your review');return;
+  }
+  if(k==='addr'){
+    const u=user(),a={id:String(fd.get('id'))||uid('a'),label:fd.get('label'),name:String(fd.get('name')).trim(),phone:String(fd.get('phone')).trim(),line:String(fd.get('line')).trim(),area:String(fd.get('area')).trim(),city:String(fd.get('city')).trim(),state:String(fd.get('state')).trim(),pin:String(fd.get('pin')).trim()};
+    if(!/^\d{10}$/.test(a.phone))return showErr(f,'Phone number must be 10 digits.');
+    if(!/^\d{6}$/.test(a.pin))return showErr(f,'PIN code must be 6 digits.');
+    const i=u.addresses.findIndex(x=>x.id===a.id);if(i>-1)u.addresses[i]=a;else u.addresses.push(a);ui.co.addr=a.id;save();closeModal();render();toast('Address saved');return;
+  }
+  if(k==='prod'){
+    const id=String(fd.get('id')),price=Math.round(+fd.get('price')),mrp=Math.round(+fd.get('mrp')),stock=Math.round(+fd.get('stock'));
+    const v={name:String(fd.get('name')).trim(),brand:String(fd.get('brand')).trim(),cat:String(fd.get('cat')).trim(),sub:String(fd.get('sub')).trim(),desc:String(fd.get('desc')).trim()};
+    if(!v.name||!v.brand||!v.cat||!v.sub||!v.desc)return showErr(f,'Please fill in every field.');
+    if(!(price>0)||!(mrp>0))return showErr(f,'Enter a price above zero.');
+    if(mrp<price)return showErr(f,'The list price (MRP) cannot be lower than the selling price.');
+    if(!(stock>=0))return showErr(f,'Stock cannot be negative.');
+    v.price=price;v.mrp=mrp;v.stock=stock;v.image=ui.img||null;
+    v.specs=String(fd.get('specs')).split('\n').map(s=>s.trim()).filter(Boolean).map(s=>{const i=s.indexOf(':');return i>0?{k:s.slice(0,i).trim(),v:s.slice(i+1).trim()}:{k:'Detail',v:s}});
+    if(id)Object.assign(prod(id),v);
+    else db.products.unshift(Object.assign({id:uid('p'),r:0,rn:0,sold:0,kind:'phone',hue:Math.floor(Math.random()*360),added:new Date().toISOString()},v));
+    save();closeModal();render();toast(id?'Item updated':'Item added to the store');return;
+  }
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#modal-root').firstChild)closeModal()});
+window.addEventListener('hashchange',route);
+
+/* ---------- start ---------- */
+(async function(){
+  db=loadDB();if(!db){db=await seed();save()}
+  if(db.session&&db.session.role==='user'&&!user())db.session=null;
+  route();
+})();
+})();
+</script>
