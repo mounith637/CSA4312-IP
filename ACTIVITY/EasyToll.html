@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyToll - Online Toll Payment System</title>
+<style>
+:root{--primary:#0b5ed7;--dark:#0a2540;--accent:#ff9f1c;--green:#198754;--red:#dc3545;--bg:#f2f5fa;--card:#fff;--muted:#6b7a90}
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Arial,sans-serif}
+body{background:var(--bg);color:#1c2b3a;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--dark);color:#fff;padding:0 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:10}
+.brand{font-size:1.5rem;font-weight:700;padding:14px 0;cursor:pointer}
+.brand span{color:var(--accent)}
+nav{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+nav a{color:#cfe0f5;text-decoration:none;padding:8px 12px;border-radius:6px;font-size:.92rem;cursor:pointer}
+nav a:hover,nav a.active{background:var(--primary);color:#fff}
+nav .logout{background:var(--red);color:#fff}
+main{flex:1;max-width:1100px;width:100%;margin:24px auto;padding:0 16px}
+footer{text-align:center;padding:16px;color:var(--muted);font-size:.85rem}
+h2{margin-bottom:16px;color:var(--dark)}
+h3{margin-bottom:10px;color:var(--dark)}
+.hero{background:linear-gradient(135deg,var(--primary),var(--dark));color:#fff;border-radius:14px;padding:50px 30px;text-align:center}
+.hero h1{font-size:2.3rem;margin-bottom:12px}
+.hero p{max-width:700px;margin:0 auto 22px;line-height:1.6;color:#dbe8fa}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:24px}
+.card{background:var(--card);border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(10,37,64,.08)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:18px}
+.stat{background:var(--card);border-radius:12px;padding:18px;border-left:5px solid var(--primary);box-shadow:0 2px 8px rgba(10,37,64,.08)}
+.stat small{color:var(--muted)}
+.stat b{display:block;font-size:1.7rem;margin-top:4px}
+.stat.g{border-color:var(--green)}.stat.o{border-color:var(--accent)}.stat.r{border-color:var(--red)}
+label{display:block;font-size:.85rem;font-weight:600;margin:10px 0 4px;color:#33475b}
+input,select{width:100%;padding:10px 12px;border:1px solid #cdd7e3;border-radius:8px;font-size:.95rem;background:#fff}
+input:focus,select:focus{outline:2px solid #9ec5fe;border-color:var(--primary)}
+.btn{display:inline-block;background:var(--primary);color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:.92rem;margin-top:14px;font-weight:600}
+.btn:hover{opacity:.9}
+.btn.sm{padding:5px 10px;margin:2px;font-size:.8rem}
+.btn.g{background:var(--green)}.btn.r{background:var(--red)}.btn.o{background:var(--accent);color:#222}.btn.d{background:#5c6b7d}
+.formbox{max-width:460px;margin:20px auto}
+.formrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 14px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;font-size:.9rem}
+th{background:var(--dark);color:#fff;text-align:left;padding:10px}
+td{padding:9px 10px;border-bottom:1px solid #e8edf3}
+.tablewrap{overflow-x:auto;margin-bottom:20px}
+.badge{padding:3px 9px;border-radius:12px;font-size:.75rem;font-weight:700;color:#fff}
+.b-approved,.b-valid{background:var(--green)}.b-pending{background:var(--accent);color:#222}
+.b-rejected,.b-expired,.b-used{background:var(--red)}
+.note{background:#e8f1ff;border-left:4px solid var(--primary);padding:9px 12px;border-radius:6px;margin-bottom:8px;font-size:.88rem}
+.qrbox{text-align:center;padding:10px}
+.qrbox svg{width:200px;height:200px}
+.qrfallback{display:inline-block;padding:20px;border:2px dashed #888;font-family:monospace;font-size:1.1rem}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal .box{background:#fff;border-radius:14px;padding:24px;max-width:360px;width:92%;text-align:center}
+.result{padding:16px;border-radius:10px;margin-top:14px;font-size:.95rem;line-height:1.7}
+.result.ok{background:#d1e7dd;border:2px solid var(--green)}
+.result.bad{background:#f8d7da;border:2px solid var(--red)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--dark);color:#fff;padding:12px 20px;border-radius:8px;z-index:100;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.toast.err{background:var(--red)}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.muted{color:var(--muted);font-size:.85rem}
+@media print{header,footer,.btn{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand" onclick="go(session?defaultView():'home')">Easy<span>Toll</span> 🚗</div>
+  <nav id="nav"></nav>
+</header>
+<main id="app"></main>
+<footer>© 2026 EasyToll – Pay in advance. Skip the queue. | Demo project (data is stored in your browser)</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+/* ================= DATA LAYER (localStorage) ================= */
+const DB_KEY = 'easytoll_db_v1';
+function seed(){
+  return {
+    admin:{username:'admin',password:'admin123'},
+    users:[], passes:[], tickets:[], txns:[], notes:[],
+    tolls:[
+      {id:'T-CHN01',name:'Sriperumbudur Toll Plaza',location:'NH48, Chennai - Bengaluru Highway',bike:20,car:85,bus:170,truck:230},
+      {id:'T-CHN02',name:'Vanagaram Toll Plaza',location:'Chennai Bypass Road',bike:15,car:70,bus:140,truck:190}
+    ],
+    tgUsers:[{id:'G-1001',username:'gate1',password:'gate123',tollId:'T-CHN01'}]
+  };
+}
+function load(){
+  try{ const d=JSON.parse(localStorage.getItem(DB_KEY)); if(d) return d; }catch(e){}
+  const d=seed(); localStorage.setItem(DB_KEY,JSON.stringify(d)); return d;
+}
+let db = load();
+function save(){ localStorage.setItem(DB_KEY,JSON.stringify(db)); }
+let session = null;
+try{ session = JSON.parse(sessionStorage.getItem('et_session')||'null'); }catch(e){}
+let view = 'home';
+
+/* ================= HELPERS ================= */
+const $ = id => document.getElementById(id);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = p => p+'-'+Math.random().toString(36).slice(2,8).toUpperCase();
+const today = () => new Date().toISOString().slice(0,10);
+const inr = n => '₹'+Number(n).toFixed(2);
+function addMonths(ds,m){ const d=new Date(ds); d.setMonth(d.getMonth()+m); return d.toISOString().slice(0,10); }
+const cur = () => session && session.role==='user' ? db.users.find(u=>u.id===session.id) : null;
+const tollOf = id => db.tolls.find(t=>t.id===id);
+const userOf = id => db.users.find(u=>u.id===id);
+function passStatus(p){ return (p.status==='approved' && p.expiry<today()) ? 'expired' : p.status; }
+const badge = s => `<span class="badge b-${s}">${s.toUpperCase()}</span>`;
+function toast(msg,err){ const t=document.createElement('div'); t.className='toast'+(err?' err':''); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2800); }
+function notify(userId,msg){ db.notes.push({id:uid('N'),userId,msg,date:new Date().toLocaleString()}); }
+function addTxn(userId,desc,amount){ db.txns.push({id:uid('TX'),userId,desc,amount,date:new Date().toLocaleString()}); }
+function fd(e){ e.preventDefault(); return Object.fromEntries(new FormData(e.target).entries()); }
+function passFee(toll,vtype,months){ return toll[vtype]*20*months; }   // 20 trips/month equivalent
+function makeQR(text,el){
+  try{ const q=qrcode(0,'M'); q.addData(text); q.make(); el.innerHTML=q.createSvgTag(5,0); }
+  catch(e){ el.innerHTML=`<div class="qrfallback">${esc(text)}</div>`; }
+}
+function showQR(code,title){
+  const m=document.createElement('div'); m.className='modal';
+  m.innerHTML=`<div class="box"><h3>${esc(title)}</h3><div class="qrbox" id="mqr"></div><p><b>${esc(code)}</b></p><p class="muted">Show this QR at the toll gate</p><button class="btn d" onclick="this.closest('.modal').remove()">Close</button> <button class="btn" onclick="window.print()">Print</button></div>`;
+  document.body.appendChild(m); makeQR(code,m.querySelector('#mqr'));
+}
+
+/* ================= NAVIGATION ================= */
+const NAV = {
+  user:[['dash','Dashboard'],['wallet','eWallet'],['ticket','Buy eTicket'],['apply','Apply Pass'],['passes','My Passes'],['vehicles','Vehicles'],['history','History']],
+  admin:[['dash','Dashboard'],['users','Users & Passes'],['approve','Approve Passes'],['tolls','Toll Details'],['tglogin','Toll Logins'],['qr','Generate QR']],
+  tg:[['scan','Scan & Verify'],['loc','Update Location']]
+};
+const defaultView = () => session ? NAV[session.role][0][0] : 'home';
+function go(v){ view=v; render(); window.scrollTo(0,0); }
+function render(){
+  let nav='';
+  if(!session){
+    nav=`<a class="${view==='home'?'active':''}" onclick="go('home')">Home</a><a class="${view==='login'?'active':''}" onclick="go('login')">Login</a><a class="${view==='register'?'active':''}" onclick="go('register')">Register</a>`;
+  } else {
+    nav=NAV[session.role].map(([k,l])=>`<a class="${view===k?'active':''}" onclick="go('${k}')">${l}</a>`).join('')+`<a class="logout" onclick="logout()">Logout</a>`;
+  }
+  $('nav').innerHTML=nav;
+  const fn = !session ? PUBLIC[view] : VIEWS[session.role][view];
+  $('app').innerHTML = fn ? fn() : '<p>Page not found</p>';
+  if(window.after) { const a=window.after; window.after=null; a(); }
+}
+function logout(){ session=null; sessionStorage.removeItem('et_session'); go('home'); toast('Logged out'); }
+
+/* ================= PUBLIC PAGES ================= */
+const PUBLIC = {
+  home:()=>`
+  <div class="hero"><h1>Pay Toll in Advance. Skip the Queue.</h1>
+  <p>EasyToll lets drivers register, load an eWallet, buy toll eTickets or toll passes and carry a QR code that is scanned at the toll gate – no waiting, no cash.</p>
+  <button class="btn o" onclick="go('register')">Register Now</button> <button class="btn" onclick="go('login')">Login</button></div>
+  <div class="features">
+    <div class="card"><h3>💳 eWallet</h3><p>Add money securely and pay tolls instantly with real-time balance updates.</p></div>
+    <div class="card"><h3>🎫 Toll eTicket</h3><p>Buy a single-journey ticket in advance for any toll plaza and vehicle.</p></div>
+    <div class="card"><h3>📅 Toll Pass</h3><p>Apply for monthly, quarterly or yearly passes and renew them online.</p></div>
+    <div class="card"><h3>📲 QR Code</h3><p>Get a QR code for your pass/ticket and get verified in seconds at the gate.</p></div>
+    <div class="card"><h3>🔔 Notifications</h3><p>Get alerts on payments, approvals and pass expiry.</p></div>
+    <div class="card"><h3>🧾 History</h3><p>View detailed transaction history and payment summaries.</p></div>
+  </div>
+  <div class="card" style="margin-top:20px"><h3>Demo Logins</h3>
+  <p>Admin: <b>admin / admin123</b> &nbsp;|&nbsp; Toll Gate: <b>gate1 / gate123</b> &nbsp;|&nbsp; User: register a new account.</p></div>`,
+
+  login:()=>`
+  <div class="card formbox"><h2>Login</h2>
+  <form onsubmit="doLogin(event)">
+    <label>Login as</label>
+    <select name="role"><option value="user">User</option><option value="admin">Admin</option><option value="tg">Toll Gate User</option></select>
+    <label>Email / Username</label><input name="id" required>
+    <label>Password</label><input name="pw" type="password" required>
+    <button class="btn">Login</button>
+  </form>
+  <p class="muted" style="margin-top:12px">New user? <a href="#" onclick="go('register');return false">Register here</a></p></div>`,
+
+  register:()=>`
+  <div class="card formbox"><h2>User Registration</h2>
+  <form onsubmit="doRegister(event)">
+    <label>Full Name</label><input name="name" required>
+    <label>Email</label><input name="email" type="email" required>
+    <label>Mobile</label><input name="phone" pattern="[0-9]{10}" title="10 digit number" required>
+    <label>Password (min 6 chars)</label><input name="pw" type="password" minlength="6" required>
+    <label>Confirm Password</label><input name="pw2" type="password" required>
+    <button class="btn">Register</button>
+  </form></div>`
+};
+function doLogin(e){
+  const f=fd(e); let ok=null;
+  if(f.role==='admin' && f.id===db.admin.username && f.pw===db.admin.password) ok={role:'admin',id:'admin'};
+  if(f.role==='user'){ const u=db.users.find(u=>u.email===f.id.toLowerCase()&&u.pw===f.pw); if(u) ok={role:'user',id:u.id}; }
+  if(f.role==='tg'){ const g=db.tgUsers.find(g=>g.username===f.id&&g.password===f.pw); if(g) ok={role:'tg',id:g.id}; }
+  if(!ok) return toast('Invalid credentials',true);
+  session=ok; sessionStorage.setItem('et_session',JSON.stringify(ok)); go(defaultView()); toast('Welcome!');
+}
+function doRegister(e){
+  const f=fd(e);
+  if(f.pw!==f.pw2) return toast('Passwords do not match',true);
+  if(db.users.some(u=>u.email===f.email.toLowerCase())) return toast('Email already registered',true);
+  db.users.push({id:uid('U'),name:f.name,email:f.email.toLowerCase(),phone:f.phone,pw:f.pw,balance:0,vehicles:[]});
+  save(); toast('Registration successful. Please login.'); go('login');
+}
+
+/* ================= USER VIEWS ================= */
+const VEH_TYPES={bike:'Bike',car:'Car',bus:'Bus',truck:'Truck'};
+function vehOptions(u){ return u.vehicles.map(v=>`<option value="${esc(v.no)}|${v.type}">${esc(v.no)} (${VEH_TYPES[v.type]})</option>`).join(''); }
+function tollOptions(){ return db.tolls.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join(''); }
+const needVeh = () => `<div class="card"><p>Please <a href="#" onclick="go('vehicles');return false">add a vehicle</a> first.</p></div>`;
+
+const USER = {
+  dash(){
+    const u=cur(), my=db.passes.filter(p=>p.userId===u.id), tk=db.tickets.filter(t=>t.userId===u.id);
+    const notes=db.notes.filter(n=>n.userId===u.id).slice(-5).reverse();
+    // expiry alerts
+    const soon=my.filter(p=>p.status==='approved'&&p.expiry>=today()&&(new Date(p.expiry)-new Date())/864e5<=7);
+    return `<h2>Hello, ${esc(u.name)} 👋</h2>
+    <div class="grid">
+      <div class="stat g"><small>eWallet Balance</small><b>${inr(u.balance)}</b></div>
+      <div class="stat"><small>Toll Passes</small><b>${my.length}</b></div>
+      <div class="stat o"><small>eTickets Bought</small><b>${tk.length}</b></div>
+      <div class="stat r"><small>Vehicles</small><b>${u.vehicles.length}</b></div>
+    </div>
+    ${soon.map(p=>`<div class="note" style="border-color:#dc3545;background:#fde8ea">⚠ Pass <b>${p.id}</b> expires on ${p.expiry}. Renew it soon.</div>`).join('')}
+    <div class="card"><h3>🔔 Notifications</h3>${notes.length?notes.map(n=>`<div class="note">${esc(n.msg)}<br><small class="muted">${n.date}</small></div>`).join(''):'<p class="muted">No notifications yet.</p>'}</div>
+    <div class="card" style="margin-top:16px"><h3>Quick Actions</h3>
+      <button class="btn g" onclick="go('wallet')">Add Money</button>
+      <button class="btn" onclick="go('ticket')">Buy eTicket</button>
+      <button class="btn o" onclick="go('apply')">Apply Toll Pass</button></div>`;
+  },
+  wallet(){
+    const u=cur();
+    return `<h2>eWallet</h2><div class="stat g" style="max-width:300px;margin-bottom:16px"><small>Current Balance</small><b>${inr(u.balance)}</b></div>
+    <div class="card formbox" style="margin:0"><h3>Add Money</h3>
+    <form onsubmit="addMoney(event)">
+      <label>Amount (₹)</label><input name="amt" type="number" min="10" max="50000" required>
+      <label>Payment Method</label><select name="mode" id="pm" onchange="pmChange()"><option>UPI</option><option>Debit Card</option><option>Credit Card</option><option>Net Banking</option></select>
+      <div id="pmx"><label>UPI ID</label><input name="ref" placeholder="name@bank" required></div>
+      <button class="btn g">Add Money</button>
+    </form></div>`;
+  },
+  ticket(){
+    const u=cur(); if(!u.vehicles.length) return `<h2>Buy Toll eTicket</h2>`+needVeh();
+    const mine=db.tickets.filter(t=>t.userId===u.id).slice().reverse();
+    return `<h2>Buy Toll eTicket</h2><div class="card formbox" style="margin:0 0 20px"><form onsubmit="buyTicket(event)">
+      <label>Vehicle</label><select name="veh" id="tv" onchange="tkPrice()">${vehOptions(u)}</select>
+      <label>Toll Plaza</label><select name="toll" id="tt" onchange="tkPrice()">${tollOptions()}</select>
+      <label>Travel Date</label><input type="date" name="date" min="${today()}" value="${today()}" required>
+      <p style="margin-top:12px">Amount: <b id="tp"></b></p>
+      <button class="btn">Pay from eWallet</button></form></div>
+      <h3>My eTickets</h3>`+ticketTable(mine);
+  },
+  apply(){
+    const u=cur(); if(!u.vehicles.length) return `<h2>Apply New Toll Pass</h2>`+needVeh();
+    return `<h2>Apply New Toll Pass</h2><div class="card formbox" style="margin:0"><form onsubmit="applyPass(event)">
+      <label>Vehicle</label><select name="veh" id="av" onchange="passPrice()">${vehOptions(u)}</select>
+      <label>Toll Plaza</label><select name="toll" id="at" onchange="passPrice()">${tollOptions()}</select>
+      <label>Pass Type</label><select name="months" id="am" onchange="passPrice()"><option value="1">Monthly</option><option value="3">Quarterly</option><option value="12">Yearly</option></select>
+      <p style="margin-top:12px">Pass Fee: <b id="ap"></b></p>
+      <p class="muted">Fee is deducted now and refunded if the admin rejects the application.</p>
+      <button class="btn">Apply &amp; Pay</button></form></div>`;
+  },
+  passes(){
+    const u=cur(), mine=db.passes.filter(p=>p.userId===u.id).slice().reverse();
+    return `<h2>My Toll Passes</h2><div class="tablewrap"><table><tr><th>Pass ID</th><th>Vehicle</th><th>Toll</th><th>Type</th><th>Expiry</th><th>Status</th><th>Actions</th></tr>
+    ${mine.map(p=>{const s=passStatus(p);return `<tr><td>${p.id}</td><td>${esc(p.vehicle)}</td><td>${esc(tollOf(p.tollId)?.name||'-')}</td><td>${p.months} mo</td><td>${p.expiry||'-'}</td><td>${badge(s)}</td>
+    <td>${s==='approved'?`<button class="btn sm g" onclick="showQR('${p.id}','Toll Pass QR')">Get QR</button>`:''}
+    ${(s==='approved'||s==='expired')?`<button class="btn sm o" onclick="renewPass('${p.id}')">Renew</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="7" class="muted">No passes yet.</td></tr>'}</table></div>
+    <button class="btn" onclick="go('apply')">Apply New Pass</button>`;
+  },
+  vehicles(){
+    const u=cur();
+    return `<h2>My Vehicles</h2><div class="tablewrap"><table><tr><th>Vehicle No</th><th>Type</th><th>Actions</th></tr>
+    ${u.vehicles.map((v,i)=>`<tr><td>${esc(v.no)}</td><td>${VEH_TYPES[v.type]}</td><td><button class="btn sm o" onclick="editVeh(${i})">Update</button><button class="btn sm r" onclick="delVeh(${i})">Delete</button></td></tr>`).join('')||'<tr><td colspan="3" class="muted">No vehicles added.</td></tr>'}</table></div>
+    <div class="card formbox" style="margin:0"><h3>Add Vehicle</h3><form onsubmit="addVeh(event)">
+      <label>Registration Number</label><input name="no" placeholder="TN01AB1234" required>
+      <label>Type</label><select name="type">${Object.entries(VEH_TYPES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+      <button class="btn">Add Vehicle</button></form></div>`;
+  },
+  history(){
+    const u=cur(), tx=db.txns.filter(t=>t.userId===u.id).slice().reverse();
+    const credit=tx.filter(t=>t.amount>0).reduce((a,t)=>a+t.amount,0), spent=tx.filter(t=>t.amount<0).reduce((a,t)=>a-t.amount,0);
+    return `<h2>Transaction History</h2><div class="grid"><div class="stat g"><small>Total Added</small><b>${inr(credit)}</b></div><div class="stat r"><small>Total Spent</small><b>${inr(spent)}</b></div></div>
+    <div class="tablewrap"><table><tr><th>Txn ID</th><th>Date</th><th>Description</th><th>Amount</th></tr>
+    ${tx.map(t=>`<tr><td>${t.id}</td><td>${t.date}</td><td>${esc(t.desc)}</td><td style="color:${t.amount>0?'#198754':'#dc3545'}"><b>${t.amount>0?'+':''}${inr(t.amount)}</b></td></tr>`).join('')||'<tr><td colspan="4" class="muted">No transactions.</td></tr>'}</table></div>`;
+  }
+};
+function ticketTable(list){
+  return `<div class="tablewrap"><table><tr><th>Ticket ID</th><th>Vehicle</th><th>Toll</th><th>Travel Date</th><th>Amount</th><th>Status</th><th>QR</th></tr>
+  ${list.map(t=>{const s=t.status==='valid'&&t.date<today()?'expired':t.status;return `<tr><td>${t.id}</td><td>${esc(t.vehicle)}</td><td>${esc(tollOf(t.tollId)?.name||'-')}</td><td>${t.date}</td><td>${inr(t.amount)}</td><td>${badge(s)}</td><td>${s==='valid'?`<button class="btn sm g" onclick="showQR('${t.id}','Toll eTicket QR')">Get QR</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="7" class="muted">No tickets.</td></tr>'}</table></div>`;
+}
+function pmChange(){
+  const m=$('pm').value, box=$('pmx');
+  box.innerHTML = m==='UPI' ? '<label>UPI ID</label><input name="ref" placeholder="name@bank" required>'
+    : m==='Net Banking' ? '<label>Bank Name</label><input name="ref" required>'
+    : '<label>Card Number</label><input name="ref" pattern="[0-9]{16}" title="16 digits" maxlength="16" required><div class="formrow"><div><label>Expiry (MM/YY)</label><input name="exp" placeholder="MM/YY" required></div><div><label>CVV</label><input name="cvv" type="password" pattern="[0-9]{3}" maxlength="3" required></div></div>';
+}
+function addMoney(e){
+  const f=fd(e), u=cur(), a=Number(f.amt);
+  if(a<=0) return toast('Invalid amount',true);
+  u.balance+=a; addTxn(u.id,`Wallet top-up via ${f.mode}`,a); notify(u.id,`${inr(a)} added to your eWallet.`); save(); toast('Money added!'); go('wallet');
+}
+function tkPrice(){ const u=cur(); const [,vt]=$('tv').value.split('|'); $('tp').textContent=inr(tollOf($('tt').value)[vt]); }
+function passPrice(){ const [,vt]=$('av').value.split('|'); $('ap').textContent=inr(passFee(tollOf($('at').value),vt,Number($('am').value))); }
+function buyTicket(e){
+  const f=fd(e), u=cur(), [no,vt]=f.veh.split('|'), toll=tollOf(f.toll), amt=toll[vt];
+  if(u.balance<amt) return toast('Insufficient balance. Please add money.',true);
+  u.balance-=amt; const id=uid('TKT');
+  db.tickets.push({id,userId:u.id,vehicle:no,vtype:vt,tollId:toll.id,date:f.date,amount:amt,status:'valid'});
+  addTxn(u.id,`eTicket ${id} - ${toll.name}`,-amt); notify(u.id,`eTicket ${id} purchased for ${f.date} at ${toll.name}.`);
+  save(); toast('Ticket purchased!'); go('ticket'); setTimeout(()=>showQR(id,'Toll eTicket QR'),100);
+}
+function applyPass(e){
+  const f=fd(e), u=cur(), [no,vt]=f.veh.split('|'), toll=tollOf(f.toll), m=Number(f.months), fee=passFee(toll,vt,m);
+  if(db.passes.some(p=>p.userId===u.id&&p.vehicle===no&&p.tollId===toll.id&&['pending','approved'].includes(p.status)&&(p.status==='pending'||p.expiry>=today())))
+    return toast('An active/pending pass already exists for this vehicle & toll. Use Renew.',true);
+  if(u.balance<fee) return toast('Insufficient balance. Please add money.',true);
+  u.balance-=fee; const id=uid('PASS');
+  db.passes.push({id,userId:u.id,vehicle:no,vtype:vt,tollId:toll.id,months:m,fee,status:'pending',appliedOn:today(),expiry:null});
+  addTxn(u.id,`Toll pass application ${id}`,-fee); notify(u.id,`Pass application ${id} submitted. Waiting for admin approval.`);
+  save(); toast('Application submitted'); go('passes');
+}
+function renewPass(id){
+  const p=db.passes.find(x=>x.id===id), u=cur(), toll=tollOf(p.tollId);
+  const m=Number(prompt('Renew for how many months? (1 = Monthly, 3 = Quarterly, 12 = Yearly)','1'));
+  if(![1,3,12].includes(m)) return toast('Enter 1, 3 or 12',true);
+  const fee=passFee(toll,p.vtype,m);
+  if(u.balance<fee) return toast('Insufficient balance. Fee: '+inr(fee),true);
+  u.balance-=fee; const base=p.expiry>today()?p.expiry:today();
+  p.expiry=addMonths(base,m); p.status='approved';
+  addTxn(u.id,`Pass renewal ${p.id} (${m} mo)`,-fee); notify(u.id,`Pass ${p.id} renewed until ${p.expiry}.`);
+  save(); toast('Pass renewed until '+p.expiry); go('passes');
+}
+function addVeh(e){
+  const f=fd(e), u=cur(), no=f.no.toUpperCase().replace(/\s/g,'');
+  if(u.vehicles.some(v=>v.no===no)) return toast('Vehicle already added',true);
+  u.vehicles.push({no,type:f.type}); save(); toast('Vehicle added'); go('vehicles');
+}
+function editVeh(i){
+  const u=cur(), v=u.vehicles[i];
+  const no=prompt('Registration number',v.no); if(!no) return;
+  const t=prompt('Type (bike / car / bus / truck)',v.type); if(!VEH_TYPES[t]) return toast('Invalid type',true);
+  v.no=no.toUpperCase().replace(/\s/g,''); v.type=t; save(); toast('Vehicle updated'); go('vehicles');
+}
+function delVeh(i){ if(confirm('Delete this vehicle?')){ cur().vehicles.splice(i,1); save(); go('vehicles'); } }
+
+/* ================= ADMIN VIEWS ================= */
+const ADMIN = {
+  dash(){
+    const rev=db.txns.filter(t=>t.amount<0).reduce((a,t)=>a-t.amount,0);
+    return `<h2>Admin Dashboard</h2><div class="grid">
+    <div class="stat"><small>Registered Users</small><b>${db.users.length}</b></div>
+    <div class="stat o"><small>Pending Passes</small><b>${db.passes.filter(p=>p.status==='pending').length}</b></div>
+    <div class="stat g"><small>Approved Passes</small><b>${db.passes.filter(p=>p.status==='approved').length}</b></div>
+    <div class="stat"><small>eTickets Sold</small><b>${db.tickets.length}</b></div>
+    <div class="stat g"><small>Total Revenue</small><b>${inr(rev)}</b></div>
+    <div class="stat r"><small>Toll Plazas</small><b>${db.tolls.length}</b></div></div>`;
+  },
+  users(){
+    return `<h2>Manage Users & Toll Passes</h2><h3>Users</h3><div class="tablewrap"><table><tr><th>ID</th><th>Name</th><th>Email</th><th>Mobile</th><th>Balance</th><th>Vehicles</th><th>Action</th></tr>
+    ${db.users.map(u=>`<tr><td>${u.id}</td><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.phone)}</td><td>${inr(u.balance)}</td><td>${u.vehicles.map(v=>esc(v.no)).join(', ')||'-'}</td><td><button class="btn sm r" onclick="delUser('${u.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="7" class="muted">No users.</td></tr>'}</table></div>
+    <h3>All Toll Passes</h3>`+passTable(db.passes,false);
+  },
+  approve(){
+    return `<h2>Approve Toll Passes</h2>`+passTable(db.passes.filter(p=>p.status==='pending'),true);
+  },
+  tolls(){
+    return `<h2>Toll Details</h2><div class="tablewrap"><table><tr><th>ID</th><th>Name</th><th>Location</th><th>Bike</th><th>Car</th><th>Bus</th><th>Truck</th><th>Action</th></tr>
+    ${db.tolls.map(t=>`<tr><td>${t.id}</td><td>${esc(t.name)}</td><td>${esc(t.location)}</td><td>${t.bike}</td><td>${t.car}</td><td>${t.bus}</td><td>${t.truck}</td><td><button class="btn sm o" onclick="editToll('${t.id}')">Edit</button><button class="btn sm r" onclick="delToll('${t.id}')">Delete</button></td></tr>`).join('')}</table></div>
+    <div class="card"><h3>Create Toll Details</h3><form onsubmit="addToll(event)"><div class="formrow">
+      <div><label>Toll Name</label><input name="name" required></div><div><label>Location</label><input name="location" required></div>
+      <div><label>Bike (₹)</label><input name="bike" type="number" min="0" required></div><div><label>Car (₹)</label><input name="car" type="number" min="0" required></div>
+      <div><label>Bus (₹)</label><input name="bus" type="number" min="0" required></div><div><label>Truck (₹)</label><input name="truck" type="number" min="0" required></div></div>
+      <button class="btn">Create Toll</button></form></div>`;
+  },
+  tglogin(){
+    return `<h2>Manage Toll Gate Logins</h2><div class="tablewrap"><table><tr><th>ID</th><th>Username</th><th>Password</th><th>Toll Plaza</th><th>Action</th></tr>
+    ${db.tgUsers.map(g=>`<tr><td>${g.id}</td><td>${esc(g.username)}</td><td>${esc(g.password)}</td><td>${esc(tollOf(g.tollId)?.name||'-')}</td><td><button class="btn sm r" onclick="delTG('${g.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">None.</td></tr>'}</table></div>
+    <div class="card formbox" style="margin:0"><h3>Create Toll Gate Login</h3><form onsubmit="addTG(event)">
+      <label>Username</label><input name="username" required><label>Password</label><input name="password" minlength="4" required>
+      <label>Assign Toll Plaza</label><select name="tollId">${tollOptions()}</select><button class="btn">Create Login</button></form></div>`;
+  },
+  qr(){
+    const approved=db.passes.filter(p=>p.status==='approved');
+    return `<h2>Generate QR Code</h2><div class="card formbox" style="margin:0"><label>Select approved pass</label>
+    <select id="qsel"><option value="">-- choose --</option>${approved.map(p=>`<option value="${p.id}">${p.id} - ${esc(p.vehicle)}</option>`).join('')}</select>
+    <label>…or enter any Pass / Ticket ID</label><input id="qtxt" placeholder="PASS-XXXXXX or TKT-XXXXXX">
+    <button class="btn" onclick="genQR()">Generate</button><div class="qrbox" id="qout"></div></div>`;
+  }
+};
+function passTable(list,approveMode){
+  return `<div class="tablewrap"><table><tr><th>Pass ID</th><th>User</th><th>Vehicle</th><th>Toll</th><th>Months</th><th>Fee</th><th>Expiry</th><th>Status</th><th>Actions</th></tr>
+  ${list.slice().reverse().map(p=>{const s=passStatus(p);return `<tr><td>${p.id}</td><td>${esc(userOf(p.userId)?.name||'-')}</td><td>${esc(p.vehicle)}</td><td>${esc(tollOf(p.tollId)?.name||'-')}</td><td>${p.months}</td><td>${inr(p.fee)}</td><td>${p.expiry||'-'}</td><td>${badge(s)}</td>
+  <td>${p.status==='pending'?`<button class="btn sm g" onclick="decide('${p.id}',true)">Approve</button><button class="btn sm r" onclick="decide('${p.id}',false)">Reject</button>`:''}${s==='approved'?`<button class="btn sm d" onclick="showQR('${p.id}','Toll Pass QR')">QR</button>`:''}<button class="btn sm r" onclick="delPass('${p.id}')">Delete</button></td></tr>`}).join('')||'<tr><td colspan="9" class="muted">Nothing to show.</td></tr>'}</table></div>`;
+}
+function decide(id,yes){
+  const p=db.passes.find(x=>x.id===id), u=userOf(p.userId);
+  if(yes){ p.status='approved'; p.expiry=addMonths(today(),p.months); notify(u.id,`Your pass ${p.id} is APPROVED. Valid till ${p.expiry}.`); toast('Pass approved'); }
+  else { p.status='rejected'; u.balance+=p.fee; addTxn(u.id,`Refund - pass ${p.id} rejected`,p.fee); notify(u.id,`Your pass ${p.id} was REJECTED. ${inr(p.fee)} refunded.`); toast('Pass rejected & refunded'); }
+  save(); render();
+}
+function delPass(id){ if(confirm('Delete pass '+id+'?')){ db.passes=db.passes.filter(p=>p.id!==id); save(); render(); } }
+function delUser(id){ if(confirm('Delete this user and their data?')){ db.users=db.users.filter(u=>u.id!==id); db.passes=db.passes.filter(p=>p.userId!==id); db.tickets=db.tickets.filter(t=>t.userId!==id); save(); render(); } }
+function addToll(e){ const f=fd(e); db.tolls.push({id:uid('T'),name:f.name,location:f.location,bike:+f.bike,car:+f.car,bus:+f.bus,truck:+f.truck}); save(); toast('Toll created'); render(); }
+function editToll(id){
+  const t=tollOf(id);
+  const n=prompt('Toll name',t.name); if(n===null) return;
+  const r=prompt('Rates as bike,car,bus,truck',[t.bike,t.car,t.bus,t.truck].join(',')); if(r===null) return;
+  const a=r.split(',').map(Number); if(a.length!==4||a.some(isNaN)) return toast('Invalid rates',true);
+  t.name=n; [t.bike,t.car,t.bus,t.truck]=a; save(); render();
+}
+function delToll(id){ if(confirm('Delete this toll?')){ db.tolls=db.tolls.filter(t=>t.id!==id); save(); render(); } }
+function addTG(e){
+  const f=fd(e); if(db.tgUsers.some(g=>g.username===f.username)) return toast('Username exists',true);
+  db.tgUsers.push({id:uid('G'),...f}); save(); toast('Toll gate login created'); render();
+}
+function delTG(id){ db.tgUsers=db.tgUsers.filter(g=>g.id!==id); save(); render(); }
+function genQR(){
+  const code=($('qtxt').value.trim()||$('qsel').value).toUpperCase(); if(!code) return toast('Choose or enter an ID',true);
+  makeQR(code,$('qout')); $('qout').insertAdjacentHTML('beforeend',`<p><b>${esc(code)}</b></p>`);
+}
+
+/* ================= TOLL GATE VIEWS ================= */
+const TG = {
+  scan(){
+    const g=db.tgUsers.find(x=>x.id===session.id), t=tollOf(g.tollId);
+    return `<h2>Toll Gate – ${esc(t?.name||'Unassigned')}</h2><p class="muted" style="margin-bottom:14px">📍 ${esc(t?.location||'')}</p>
+    <div class="grid">
+      <div class="card"><h3>📷 Scan QR</h3><p class="muted">Enter/scan the QR content (use a USB/phone QR scanner that types into the box).</p>
+        <input id="qrin" placeholder="Scan QR here" autofocus onkeydown="if(event.key==='Enter')verify(this.value)"><button class="btn" onclick="verify($('qrin').value)">Scan</button></div>
+      <div class="card"><h3>🆔 Verify Toll Pass ID</h3><input id="pin" placeholder="PASS-XXXXXX"><button class="btn g" onclick="verify($('pin').value,'PASS')">Verify Pass</button></div>
+      <div class="card"><h3>🎫 Verify Toll Ticket</h3><input id="tin" placeholder="TKT-XXXXXX"><button class="btn o" onclick="verify($('tin').value,'TKT')">Verify Ticket</button></div>
+    </div><div id="result"></div>`;
+  },
+  loc(){
+    const g=db.tgUsers.find(x=>x.id===session.id), t=tollOf(g.tollId);
+    return `<h2>Update Toll Location</h2><div class="card formbox"><form onsubmit="updLoc(event)">
+      <label>Toll Plaza</label><input value="${esc(t?.name||'')}" disabled>
+      <label>Current Location</label><input name="location" value="${esc(t?.location||'')}" required>
+      <button class="btn">Update Location</button></form></div>`;
+  }
+};
+function updLoc(e){ const f=fd(e), g=db.tgUsers.find(x=>x.id===session.id); tollOf(g.tollId).location=f.location; save(); toast('Location updated'); render(); }
+function verify(raw,expect){
+  const code=raw.trim().toUpperCase(), g=db.tgUsers.find(x=>x.id===session.id), out=$('result');
+  const show=(ok,html)=>{ out.innerHTML=`<div class="result ${ok?'ok':'bad'}">${ok?'✅':'❌'} ${html}</div>`; };
+  if(!code) return toast('Enter a code',true);
+  if(expect && !code.startsWith(expect+'-')) return show(false,`<b>Invalid format.</b> Expected an ID starting with ${expect}-`);
+  if(code.startsWith('PASS-')){
+    const p=db.passes.find(x=>x.id===code); if(!p) return show(false,'<b>Pass not found.</b>');
+    const s=passStatus(p), u=userOf(p.userId);
+    const info=`<br>Pass: ${p.id}<br>Owner: ${esc(u?.name||'-')}<br>Vehicle: ${esc(p.vehicle)} (${VEH_TYPES[p.vtype]})<br>Toll: ${esc(tollOf(p.tollId)?.name||'-')}<br>Expiry: ${p.expiry||'-'}`;
+    if(s!=='approved') return show(false,`<b>Pass is ${s.toUpperCase()} – NOT valid.</b>${info}`);
+    if(p.tollId!==g.tollId) return show(false,`<b>Pass is not valid for this toll plaza.</b>${info}`);
+    return show(true,`<b>VALID PASS – Allow vehicle.</b>${info}`);
+  }
+  if(code.startsWith('TKT-')){
+    const t=db.tickets.find(x=>x.id===code); if(!t) return show(false,'<b>Ticket not found.</b>');
+    const info=`<br>Ticket: ${t.id}<br>Vehicle: ${esc(t.vehicle)}<br>Toll: ${esc(tollOf(t.tollId)?.name||'-')}<br>Travel date: ${t.date}<br>Amount: ${inr(t.amount)}`;
+    if(t.status==='used') return show(false,`<b>Ticket already USED.</b>${info}`);
+    if(t.date!==today()) return show(false,`<b>Ticket is for ${t.date}, not today (${today()}).</b>${info}`);
+    if(t.tollId!==g.tollId) return show(false,`<b>Ticket is for a different toll plaza.</b>${info}`);
+    t.status='used'; save();
+    return show(true,`<b>VALID TICKET – Allow vehicle (ticket marked as used).</b>${info}`);
+  }
+  show(false,'<b>Unrecognised QR / ID.</b>');
+}
+
+const VIEWS = {user:USER,admin:ADMIN,tg:TG};
+
+/* ================= START ================= */
+if(session && !VIEWS[session.role]) session=null;
+view = session ? defaultView() : 'home';
+render();
+document.addEventListener('change',e=>{ if(e.target.id==='tv'||e.target.id==='tt') tkPrice(); });
+const _r=render; render=function(){ _r(); if($('tp')) tkPrice(); if($('ap')) passPrice(); };
+</script>
+</body>
+</html>

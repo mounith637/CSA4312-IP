@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Electricity Bill Payment</title>
+<style>
+  :root{--primary:#1e5bd8;--primary-d:#1646a8;--accent:#f5a623;--bg:#eef2f9;--card:#fff;--text:#1f2937;--muted:#6b7280;--ok:#16a34a;--bad:#dc2626;--border:#dbe2ef}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Arial,sans-serif}
+  body{background:var(--bg);color:var(--text);min-height:100vh}
+  header{background:linear-gradient(90deg,var(--primary-d),var(--primary));color:#fff;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  header h1{font-size:1.25rem;display:flex;align-items:center;gap:8px}
+  header .user{display:flex;gap:12px;align-items:center;font-size:.9rem}
+  main{max-width:1100px;margin:24px auto;padding:0 16px}
+  .card{background:var(--card);border-radius:12px;box-shadow:0 2px 10px rgba(30,60,120,.08);padding:22px;margin-bottom:20px}
+  .card h2{font-size:1.1rem;margin-bottom:14px;color:var(--primary-d)}
+  .auth{max-width:430px;margin:40px auto}
+  .hero{text-align:center;padding:30px 10px}
+  .hero h2{font-size:1.6rem;color:var(--primary-d);margin-bottom:8px}
+  .hero p{color:var(--muted);margin-bottom:22px}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:150px}
+  label{display:block;font-size:.82rem;font-weight:600;margin:12px 0 4px;color:#374151}
+  input,select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:.95rem;background:#fff}
+  input:focus,select:focus{outline:2px solid #bcd0ff;border-color:var(--primary)}
+  button{cursor:pointer;border:none;border-radius:8px;padding:10px 18px;font-size:.92rem;font-weight:600;background:var(--primary);color:#fff;transition:.15s}
+  button:hover{background:var(--primary-d)}
+  button.sec{background:#e5eaf5;color:var(--primary-d)} button.sec:hover{background:#d4dcee}
+  button.ok{background:var(--ok)} button.warn{background:var(--accent);color:#222}
+  button.small{padding:6px 12px;font-size:.8rem}
+  button.full{width:100%;margin-top:18px}
+  .link{background:none;color:var(--primary);padding:0;text-decoration:underline;font-weight:500}
+  .link:hover{background:none}
+  .center{text-align:center}.mt{margin-top:14px}.muted{color:var(--muted);font-size:.85rem}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px}
+  .stat{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 2px 10px rgba(30,60,120,.08);border-left:5px solid var(--primary)}
+  .stat .l{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .stat .v{font-size:1.5rem;font-weight:700;margin-top:4px}
+  .stat.red{border-color:var(--bad)}.stat.green{border-color:var(--ok)}.stat.amber{border-color:var(--accent)}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border)}
+  th{background:#f3f6fc;color:#374151;font-size:.78rem;text-transform:uppercase}
+  .tablewrap{overflow-x:auto}
+  .badge{padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
+  .b-paid{background:#dcfce7;color:#166534}.b-unpaid{background:#fef3c7;color:#92400e}.b-over{background:#fee2e2;color:#991b1b}
+  .tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+  .tabs button{background:#e5eaf5;color:var(--primary-d)}
+  .tabs button.active{background:var(--primary);color:#fff}
+  .hidden{display:none!important}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .methods{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:8px 0}
+  .method{border:2px solid var(--border);border-radius:10px;padding:12px;text-align:center;cursor:pointer;font-size:.85rem;font-weight:600;background:#fff}
+  .method.sel{border-color:var(--primary);background:#eaf1ff}
+  .method .ic{font-size:1.5rem;display:block}
+  .bill-box{background:#f7f9fe;border:1px dashed #b8c6e6;border-radius:10px;padding:14px;font-size:.92rem}
+  .bill-box div{display:flex;justify-content:space-between;padding:4px 0}
+  .bill-box .total{border-top:2px solid var(--primary);margin-top:6px;padding-top:8px;font-weight:700;font-size:1.05rem}
+  .modal-bg{position:fixed;inset:0;background:rgba(10,20,50,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:14px}
+  .modal{background:#fff;border-radius:14px;max-width:480px;width:100%;padding:24px;max-height:92vh;overflow:auto}
+  .receipt h3{text-align:center;color:var(--primary-d)}
+  .receipt .tick{font-size:2.6rem;text-align:center;color:var(--ok)}
+  #toast{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:8px;z-index:99}
+  .toast{background:#1f2937;color:#fff;padding:12px 16px;border-radius:8px;font-size:.88rem;max-width:320px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .toast.err{background:var(--bad)}.toast.good{background:var(--ok)}
+  .switch{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+  .switch input{width:auto;transform:scale(1.3)}
+  @media print{header,.noprint,#toast{display:none!important}.modal-bg{position:static;background:none}.modal{box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚡ Online Electricity Bill Payment</h1>
+  <div class="user" id="userbar"></div>
+</header>
+<main id="app"></main>
+<div id="toast"></div>
+
+<script>
+/* ================= DATA LAYER (localStorage) ================= */
+const KEY = 'eb_portal_db_v1';
+const todayStr = () => fmtDate(new Date());
+function fmtDate(d){const m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return d.getFullYear()+'-'+m+'-'+dd;}
+function parseDate(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function addDays(s,n){const d=parseDate(s);d.setDate(d.getDate()+n);return fmtDate(d);}
+function addMonths(s,n){const d=parseDate(s);d.setMonth(d.getMonth()+n);return fmtDate(d);}
+function showDate(s){return parseDate(s).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
+const money = n => '₹' + Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function defaultDB(){
+  const start = todayStr(), end = addDays(addMonths(start,2),-1);
+  return {
+    admin:{username:'admin',password:'admin123'},
+    rates:{
+      domestic:[{to:100,rate:1},{to:200,rate:2.5},{to:500,rate:4},{to:null,rate:6}],
+      commercial:[{to:100,rate:2},{to:200,rate:4.5},{to:500,rate:6},{to:null,rate:7}]
+    },
+    cycle:{id:1,start:start,end:end,due:addDays(end,15),finePerDay:10},
+    customers:[],bills:[],nextConsumer:1001,nextBill:1,nextTxn:1,session:null
+  };
+}
+let db = load();
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&x.rates)return x;}catch(e){}return defaultDB();}
+function save(){localStorage.setItem(KEY,JSON.stringify(db));}
+
+/* ================= BILL LOGIC ================= */
+// Slab-wise calculation based on connection type
+function calcAmount(units,type){
+  const slabs = db.rates[type]; let prev=0, amt=0;
+  for(const s of slabs){
+    const upper = s.to===null?Infinity:s.to;
+    if(units>prev){amt += (Math.min(units,upper)-prev)*s.rate;}
+    prev=upper;
+  }
+  return Math.round(amt*100)/100;
+}
+// Rs.10 (configurable) per day after last date of payment
+function calcFine(bill){
+  if(bill.status==='Paid') return bill.fine;
+  const days = Math.floor((parseDate(todayStr())-parseDate(bill.due))/86400000);
+  return days>0 ? days*bill.finePerDay : 0;
+}
+function overdueDays(bill){const d=Math.floor((parseDate(todayStr())-parseDate(bill.due))/86400000);return d>0?d:0;}
+function statusOf(b){return b.status==='Paid'?'Paid':(overdueDays(b)>0?'Overdue':'Unpaid');}
+function badge(b){const s=statusOf(b);return `<span class="badge ${s==='Paid'?'b-paid':s==='Overdue'?'b-over':'b-unpaid'}">${s}</span>`;}
+const cust = no => db.customers.find(c=>c.consumerNo===no);
+function pendingBill(no){return db.bills.filter(b=>b.consumerNo===no&&b.status!=='Paid').sort((a,b)=>b.id-a.id)[0];}
+
+/* ================= UI HELPERS ================= */
+const $ = id => document.getElementById(id);
+function toast(msg,type=''){const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;$('toast').appendChild(t);setTimeout(()=>t.remove(),5000);}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function render(html){$('app').innerHTML=html;window.scrollTo(0,0);}
+function userbar(){
+  const s=db.session;
+  if(!s){$('userbar').innerHTML='';return;}
+  const name = s.role==='admin'?'Administrator':esc(cust(s.consumerNo)?.name||'');
+  $('userbar').innerHTML=`<span>👤 ${name}</span><button class="sec small" onclick="logout()">Logout</button>`;
+}
+function logout(){db.session=null;save();route();}
+
+/* ================= ROUTER ================= */
+function route(){
+  userbar();
+  const s=db.session;
+  if(!s) return viewHome();
+  if(s.role==='admin') return viewAdmin(window._adminTab||'tariff');
+  return viewCustomer();
+}
+
+/* ---------- HOME ---------- */
+function viewHome(){
+  render(`<div class="card hero">
+    <h2>Pay your electricity bill online</h2>
+    <p>View your bill, pay securely and download receipts anytime.</p>
+    <div class="row" style="max-width:520px;margin:auto">
+      <button onclick="viewCustLogin()">Customer Login</button>
+      <button class="sec" onclick="viewRegister()">New Customer Registration</button>
+      <button class="warn" onclick="viewAdminLogin()">Admin Login</button>
+    </div></div>`);
+}
+
+/* ---------- ADMIN LOGIN ---------- */
+function viewAdminLogin(){
+  render(`<div class="card auth"><h2>Admin Login</h2>
+    <form onsubmit="adminLogin(event)">
+      <label>Username</label><input id="au" required autocomplete="username">
+      <label>Password</label><input id="ap" type="password" required autocomplete="current-password">
+      <button class="full">Login</button>
+    </form>
+    <p class="muted mt">Default: admin / admin123</p>
+    <p class="center mt"><button class="link" onclick="viewHome()">← Back</button></p></div>`);
+}
+function adminLogin(e){
+  e.preventDefault();
+  if($('au').value.trim()===db.admin.username && $('ap').value===db.admin.password){
+    db.session={role:'admin'};save();toast('Welcome, Admin','good');window._adminTab='tariff';route();
+  } else toast('Invalid admin credentials','err');
+}
+
+/* ---------- CUSTOMER REGISTRATION ---------- */
+function viewRegister(){
+  render(`<div class="card auth" style="max-width:560px"><h2>Customer Registration</h2>
+    <form onsubmit="register(event)">
+      <label>Full Name</label><input id="rn" required minlength="3">
+      <div class="row"><div><label>Email</label><input id="re" type="email" required></div>
+      <div><label>Mobile Number</label><input id="rm" required pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10-digit number"></div></div>
+      <label>Address</label><input id="ra" required>
+      <label>Type of EB Connection</label>
+      <select id="rt"><option value="domestic">Domestic</option><option value="commercial">Commercial</option></select>
+      <div class="row"><div><label>Password</label><input id="rp" type="password" required minlength="6"></div>
+      <div><label>Confirm Password</label><input id="rc" type="password" required></div></div>
+      <button class="full">Register</button>
+    </form>
+    <p class="center mt"><button class="link" onclick="viewHome()">← Back</button></p></div>`);
+}
+function register(e){
+  e.preventDefault();
+  if($('rp').value!==$('rc').value) return toast('Passwords do not match','err');
+  const email=$('re').value.trim().toLowerCase();
+  if(db.customers.some(c=>c.email===email)) return toast('Email already registered','err');
+  const c={consumerNo:'EB'+db.nextConsumer++,name:$('rn').value.trim(),email,mobile:$('rm').value.trim(),
+    address:$('ra').value.trim(),type:$('rt').value,password:$('rp').value,
+    autopay:{enabled:false,method:'card',detail:''},reminders:{sms:false,email:false}};
+  db.customers.push(c);save();
+  alert('Registration successful!\nYour Consumer Number: '+c.consumerNo+'\nUse it (or your email) to log in.');
+  viewCustLogin();
+}
+
+/* ---------- CUSTOMER LOGIN ---------- */
+function viewCustLogin(){
+  render(`<div class="card auth"><h2>Customer Login</h2>
+    <form onsubmit="custLogin(event)">
+      <label>Consumer Number or Email</label><input id="cu" required>
+      <label>Password</label><input id="cp" type="password" required>
+      <button class="full">Login</button>
+    </form>
+    <p class="center mt muted">New user? <button class="link" onclick="viewRegister()">Register here</button></p>
+    <p class="center mt"><button class="link" onclick="viewHome()">← Back</button></p></div>`);
+}
+function custLogin(e){
+  e.preventDefault();
+  const id=$('cu').value.trim().toLowerCase();
+  const c=db.customers.find(c=>(c.consumerNo.toLowerCase()===id||c.email===id)&&c.password===$('cp').value);
+  if(!c) return toast('Invalid credentials','err');
+  db.session={role:'customer',consumerNo:c.consumerNo};save();route();
+  setTimeout(()=>{runReminders(c);runAutoPay(c);},400);
+}
+
+/* ================= CUSTOMER DASHBOARD ================= */
+function viewCustomer(){
+  const c=cust(db.session.consumerNo); if(!c){logout();return;}
+  const b=pendingBill(c.consumerNo);
+  const hist=db.bills.filter(x=>x.consumerNo===c.consumerNo).sort((a,b)=>b.id-a.id);
+  const fine=b?calcFine(b):0, total=b?b.amount+fine:0;
+  render(`
+    <div class="stats">
+      <div class="stat ${b?(overdueDays(b)>0?'red':'amber'):'green'}"><div class="l">Current Bill Amount</div><div class="v">${b?money(total):'₹0.00'}</div></div>
+      <div class="stat"><div class="l">Due Date</div><div class="v">${b?showDate(b.due):'—'}</div></div>
+      <div class="stat"><div class="l">Consumer No · Type</div><div class="v" style="font-size:1.1rem">${c.consumerNo} · ${c.type}</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Current Bill</h2>
+        ${b?`<div class="bill-box">
+          <div><span>Billing Period</span><span>${showDate(b.start)} – ${showDate(b.end)}</span></div>
+          <div><span>Units Consumed</span><span>${b.units} units</span></div>
+          <div><span>Energy Charges</span><span>${money(b.amount)}</span></div>
+          <div><span>Fine (${overdueDays(b)} day(s) × ${money(b.finePerDay)})</span><span>${money(fine)}</span></div>
+          <div class="total"><span>Total Payable</span><span>${money(total)}</span></div>
+        </div>
+        <button class="full ok" onclick="viewPay(${b.id})">Pay Now</button>`
+        :`<p class="muted">🎉 No pending bill. You're all caught up!</p>`}
+      </div>
+      <div class="card"><h2>Auto-Pay &amp; Reminders</h2>
+        <div class="switch"><span>Automatic payments</span><input type="checkbox" id="apOn" ${c.autopay.enabled?'checked':''} onchange="toggleAuto()"></div>
+        <div id="apBox" class="${c.autopay.enabled?'':'hidden'}">
+          <label>Auto-pay method</label>
+          <select id="apM" onchange="saveAuto()">
+            ${[['card','Credit / Debit Card'],['netbanking','Net Banking'],['wallet','Digital Wallet']].map(m=>`<option value="${m[0]}" ${c.autopay.method===m[0]?'selected':''}>${m[1]}</option>`).join('')}
+          </select>
+          <label>Card last 4 digits / Bank / Wallet name</label>
+          <input id="apD" value="${esc(c.autopay.detail)}" onchange="saveAuto()" placeholder="e.g. 4321 or SBI or Paytm">
+          <p class="muted mt">Bills are paid automatically (including any fine) when you log in with an unpaid bill.</p>
+        </div>
+        <div class="switch"><span>Bill reminders via SMS (${esc(c.mobile)})</span><input type="checkbox" id="rSms" ${c.reminders.sms?'checked':''} onchange="saveRem()"></div>
+        <div class="switch"><span>Bill reminders via Email (${esc(c.email)})</span><input type="checkbox" id="rEml" ${c.reminders.email?'checked':''} onchange="saveRem()"></div>
+      </div>
+    </div>
+    <div class="card"><h2>Payment History</h2>
+      <div class="tablewrap"><table>
+        <tr><th>Period</th><th>Units</th><th>Bill</th><th>Fine</th><th>Total</th><th>Status</th><th>Paid On</th><th>Receipt</th></tr>
+        ${hist.length?hist.map(h=>`<tr>
+          <td>${showDate(h.start)} – ${showDate(h.end)}</td><td>${h.units}</td><td>${money(h.amount)}</td>
+          <td>${money(calcFine(h))}</td><td>${money(h.amount+calcFine(h))}</td><td>${badge(h)}</td>
+          <td>${h.paidOn?showDate(h.paidOn):'—'}</td>
+          <td>${h.status==='Paid'?`<button class="sec small" onclick="showReceipt(${h.id})">View</button>`:'—'}</td></tr>`).join(''):`<tr><td colspan="8" class="muted">No bills generated yet.</td></tr>`}
+      </table></div>
+    </div>`);
+}
+function toggleAuto(){const c=cust(db.session.consumerNo);c.autopay.enabled=$('apOn').checked;save();$('apBox').classList.toggle('hidden',!c.autopay.enabled);toast('Auto-pay '+(c.autopay.enabled?'enabled':'disabled'),'good');}
+function saveAuto(){const c=cust(db.session.consumerNo);c.autopay.method=$('apM').value;c.autopay.detail=$('apD').value.trim();save();toast('Auto-pay settings saved','good');}
+function saveRem(){const c=cust(db.session.consumerNo);c.reminders.sms=$('rSms').checked;c.reminders.email=$('rEml').checked;save();toast('Reminder preferences saved','good');}
+
+// Simulated reminders (a real system would use an SMS / email gateway)
+function runReminders(c){
+  const b=pendingBill(c.consumerNo); if(!b) return;
+  const left=Math.ceil((parseDate(b.due)-parseDate(todayStr()))/86400000);
+  if(left>5) return;
+  const msg = left<0?`Your bill of ${money(b.amount+calcFine(b))} is overdue by ${-left} day(s).`:`Your bill of ${money(b.amount)} is due in ${left} day(s) (${showDate(b.due)}).`;
+  if(c.reminders.sms) toast('📱 SMS sent to '+c.mobile+': '+msg);
+  if(c.reminders.email) toast('✉️ Email sent to '+c.email+': '+msg);
+}
+function runAutoPay(c){
+  const b=pendingBill(c.consumerNo);
+  if(!c.autopay.enabled||!b) return;
+  if(!c.autopay.detail){toast('Auto-pay is on, but payment details are missing','err');return;}
+  completePayment(b,c.autopay.method,c.autopay.detail,true);
+  toast('🔁 Auto-pay successful for '+money(b.amount+b.fine),'good');
+  viewCustomer();showReceipt(b.id);
+}
+
+/* ================= PAYMENT ================= */
+let payMethod='card';
+function viewPay(id){
+  const b=db.bills.find(x=>x.id===id),fine=calcFine(b),total=b.amount+fine;payMethod='card';
+  render(`<div class="card" style="max-width:640px;margin:auto"><h2>Make Payment</h2>
+    <div class="bill-box">
+      <div><span>Bill Amount</span><span>${money(b.amount)}</span></div>
+      <div><span>Fine</span><span>${money(fine)}</span></div>
+      <div class="total"><span>Amount to Pay</span><span>${money(total)}</span></div></div>
+    <label>Select Payment Method</label>
+    <div class="methods">
+      <div class="method sel" data-m="card" onclick="pickMethod('card')"><span class="ic">💳</span>Credit / Debit Card</div>
+      <div class="method" data-m="netbanking" onclick="pickMethod('netbanking')"><span class="ic">🏦</span>Net Banking</div>
+      <div class="method" data-m="wallet" onclick="pickMethod('wallet')"><span class="ic">👛</span>Digital Wallet</div>
+    </div>
+    <form onsubmit="payNow(event,${id})"><div id="payFields"></div>
+      <button class="full ok">Pay ${money(total)}</button></form>
+    <p class="center mt"><button class="link" onclick="route()">← Back to dashboard</button></p></div>`);
+  pickMethod('card');
+}
+function pickMethod(m){
+  payMethod=m;
+  document.querySelectorAll('.method').forEach(x=>x.classList.toggle('sel',x.dataset.m===m));
+  const f={
+    card:`<label>Card Holder Name</label><input id="f1" required>
+      <label>Card Number</label><input id="f2" required maxlength="19" inputmode="numeric" placeholder="1234 5678 9012 3456" oninput="this.value=this.value.replace(/\\D/g,'').replace(/(.{4})/g,'$1 ').trim()">
+      <div class="row"><div><label>Expiry (MM/YY)</label><input id="f3" required placeholder="MM/YY" maxlength="5"></div>
+      <div><label>CVV</label><input id="f4" type="password" required maxlength="3" inputmode="numeric" placeholder="•••"></div></div>`,
+    netbanking:`<label>Select Bank</label><select id="f1" required><option value="">-- choose --</option><option>State Bank of India</option><option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option><option>Indian Bank</option><option>Canara Bank</option></select>
+      <label>Net Banking User ID</label><input id="f2" required minlength="4"><label>Password</label><input id="f3" type="password" required minlength="4">`,
+    wallet:`<label>Select Wallet</label><select id="f1" required><option value="">-- choose --</option><option>Paytm</option><option>PhonePe</option><option>Amazon Pay</option><option>Google Pay</option></select>
+      <label>Registered Mobile Number</label><input id="f2" required pattern="[6-9][0-9]{9}" maxlength="10"><label>Wallet PIN</label><input id="f3" type="password" required minlength="4" maxlength="6" inputmode="numeric">`
+  };
+  $('payFields').innerHTML=f[m];
+}
+function payNow(e,id){
+  e.preventDefault();
+  let detail='';
+  if(payMethod==='card'){
+    const num=$('f2').value.replace(/\s/g,'');
+    if(num.length!==16) return toast('Card number must be 16 digits','err');
+    const m=$('f3').value.match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
+    if(!m) return toast('Enter expiry as MM/YY','err');
+    const exp=new Date(2000+ +m[2],+m[1],0);
+    if(exp<new Date()) return toast('Card has expired','err');
+    if(!/^\d{3}$/.test($('f4').value)) return toast('CVV must be 3 digits','err');
+    detail='Card ending '+num.slice(-4);   // full card number is never stored
+  } else if(payMethod==='netbanking'){detail=$('f1').value;}
+  else {detail=$('f1').value+' ('+$('f2').value.slice(0,2)+'••••••'+$('f2').value.slice(-2)+')';}
+  const b=db.bills.find(x=>x.id===id);
+  const btn=e.target.querySelector('button');btn.disabled=true;btn.textContent='Processing...';
+  setTimeout(()=>{completePayment(b,payMethod,detail,false);toast('Payment successful','good');route();showReceipt(id);},1200);
+}
+function completePayment(b,method,detail,auto){
+  b.fine=calcFine(b);b.status='Paid';b.paidOn=todayStr();b.paidTime=new Date().toLocaleTimeString('en-IN');
+  b.method={card:'Credit/Debit Card',netbanking:'Net Banking',wallet:'Digital Wallet'}[method]+(detail?' – '+detail:'')+(auto?' (Auto-pay)':'');
+  b.txnId='TXN'+Date.now().toString().slice(-8)+String(db.nextTxn++).padStart(3,'0');
+  save();
+}
+
+/* ================= RECEIPT ================= */
+function receiptText(b){
+  const c=cust(b.consumerNo);
+  return `ELECTRICITY BILL PAYMENT RECEIPT
+==============================
+Receipt No      : RCPT-${String(b.id).padStart(5,'0')}
+Transaction ID  : ${b.txnId}
+Paid On         : ${showDate(b.paidOn)} ${b.paidTime||''}
+------------------------------
+Consumer No     : ${c.consumerNo}
+Name            : ${c.name}
+Connection Type : ${c.type}
+Billing Period  : ${showDate(b.start)} - ${showDate(b.end)}
+Units Consumed  : ${b.units}
+------------------------------
+Bill Amount     : ${money(b.amount)}
+Fine            : ${money(b.fine)}
+TOTAL PAID      : ${money(b.amount+b.fine)}
+Payment Method  : ${b.method}
+Status          : PAID
+==============================
+Thank you for your payment.`;
+}
+function showReceipt(id){
+  const b=db.bills.find(x=>x.id===id),c=cust(b.consumerNo);
+  const m=document.createElement('div');m.className='modal-bg';m.id='rcpt';
+  m.innerHTML=`<div class="modal receipt"><div class="tick">✔</div><h3>Payment Receipt</h3>
+    <p class="center muted">Receipt No: RCPT-${String(b.id).padStart(5,'0')} · ${b.txnId}</p>
+    <div class="bill-box mt">
+      <div><span>Consumer</span><span>${esc(c.name)} (${c.consumerNo})</span></div>
+      <div><span>Period</span><span>${showDate(b.start)} – ${showDate(b.end)}</span></div>
+      <div><span>Units</span><span>${b.units}</span></div>
+      <div><span>Bill Amount</span><span>${money(b.amount)}</span></div>
+      <div><span>Fine</span><span>${money(b.fine)}</span></div>
+      <div class="total"><span>Total Paid</span><span>${money(b.amount+b.fine)}</span></div>
+      <div><span>Method</span><span style="text-align:right">${esc(b.method)}</span></div>
+      <div><span>Paid On</span><span>${showDate(b.paidOn)}</span></div>
+    </div>
+    <div class="row mt noprint">
+      <button onclick="downloadReceipt(${id})">⬇ Download</button>
+      <button class="sec" onclick="emailReceipt(${id})">✉ Email</button>
+      <button class="sec" onclick="window.print()">🖨 Print</button>
+    </div>
+    <button class="full warn noprint" onclick="$('rcpt').remove()">Close</button></div>`;
+  document.body.appendChild(m);
+}
+function downloadReceipt(id){
+  const b=db.bills.find(x=>x.id===id);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([receiptText(b)],{type:'text/plain'}));
+  a.download='Receipt_'+b.txnId+'.txt';a.click();URL.revokeObjectURL(a.href);
+}
+function emailReceipt(id){
+  const b=db.bills.find(x=>x.id===id),c=cust(b.consumerNo);
+  window.location.href='mailto:'+encodeURIComponent(c.email)+'?subject='+encodeURIComponent('Electricity Bill Receipt '+b.txnId)+'&body='+encodeURIComponent(receiptText(b));
+  toast('Receipt emailed to '+c.email,'good');
+}
+
+/* ================= ADMIN ================= */
+function viewAdmin(tab){
+  window._adminTab=tab;
+  const tabs=[['tariff','Tariff & Billing Cycle'],['bills','Generate Bills'],['customers','Customers'],['payments','Payments']];
+  render(`<div class="tabs">${tabs.map(t=>`<button class="${t[0]===tab?'active':''}" onclick="viewAdmin('${t[0]}')">${t[1]}</button>`).join('')}</div><div id="adminBody"></div>`);
+  ({tariff:adminTariff,bills:adminBills,customers:adminCustomers,payments:adminPayments})[tab]();
+}
+function slabInputs(type){
+  const labels=['First 100 units','101 – 200 units','201 – 500 units','Above 500 units'];
+  return db.rates[type].map((s,i)=>`<div class="row" style="align-items:center;margin-bottom:6px"><span style="flex:2">${labels[i]}</span>
+    <span style="flex:1;display:flex;gap:4px;align-items:center">₹<input type="number" step="0.01" min="0" id="r_${type}_${i}" value="${s.rate}"> /unit</span></div>`).join('');
+}
+function adminTariff(){
+  const cy=db.cycle;
+  $('adminBody').innerHTML=`
+  <div class="card"><h2>Bill Calculation Formula (per unit slab rates)</h2>
+    <div class="grid2">
+      <div><h3 style="margin-bottom:10px">🏠 Domestic</h3>${slabInputs('domestic')}</div>
+      <div><h3 style="margin-bottom:10px">🏢 Commercial</h3>${slabInputs('commercial')}</div>
+    </div>
+    <button class="mt" onclick="saveRates()">Update Formula</button>
+    <p class="muted mt">Updating recalculates all unpaid bills with the new rates. Paid bills are not changed.</p>
+  </div>
+  <div class="card"><h2>Billing Cycle (updated every two months)</h2>
+    <div class="row">
+      <div><label>Start Date</label><input type="date" id="cs" value="${cy.start}"></div>
+      <div><label>End Date</label><input type="date" id="ce" value="${cy.end}"></div>
+      <div><label>Last Date of Payment</label><input type="date" id="cd" value="${cy.due}"></div>
+      <div><label>Fine per day after last date (₹)</label><input type="number" id="cf" min="0" value="${cy.finePerDay}"></div>
+    </div>
+    <div class="row mt" style="max-width:480px"><button onclick="saveCycle()">Save Cycle</button>
+    <button class="sec" onclick="nextCycle()">Start Next 2-Month Cycle</button></div>
+    <p class="muted mt">Cycle #${cy.id}. Fine = number of days after the last date × fine per day (default ₹10).</p>
+  </div>
+  <div class="card"><h2>Test the formula</h2>
+    <div class="row"><div><label>Type</label><select id="tt"><option value="domestic">Domestic</option><option value="commercial">Commercial</option></select></div>
+    <div><label>Units</label><input type="number" id="tu" min="0" value="250"></div>
+    <div style="display:flex;align-items:end"><button class="sec" onclick="$('tr').textContent=money(calcAmount(+$('tu').value,$('tt').value))">Calculate</button></div>
+    <div style="display:flex;align-items:end;font-weight:700;font-size:1.2rem" id="tr"></div></div>
+  </div>`;
+}
+function saveRates(){
+  for(const t of ['domestic','commercial']) db.rates[t].forEach((s,i)=>{const v=parseFloat($(`r_${t}_${i}`).value);if(!isNaN(v)&&v>=0)s.rate=v;});
+  let n=0;db.bills.forEach(b=>{if(b.status!=='Paid'){b.amount=calcAmount(b.units,cust(b.consumerNo).type);n++;}});
+  save();toast(`Formula updated. ${n} unpaid bill(s) recalculated.`,'good');
+}
+function saveCycle(){
+  const s=$('cs').value,e=$('ce').value,d=$('cd').value;
+  if(!s||!e||!d) return toast('Fill all dates','err');
+  if(e<s) return toast('End date must be after start date','err');
+  if(d<e) return toast('Last payment date must be on/after end date','err');
+  Object.assign(db.cycle,{start:s,end:e,due:d,finePerDay:Math.max(0,+$('cf').value||0)});save();toast('Billing cycle saved','good');
+}
+function nextCycle(){
+  const c=db.cycle,s=addDays(c.end,1),e=addDays(addMonths(s,2),-1);
+  db.cycle={id:c.id+1,start:s,end:e,due:addDays(e,15),finePerDay:c.finePerDay};save();toast('New 2-month cycle started','good');adminTariff();
+}
+function adminBills(){
+  const cy=db.cycle;
+  $('adminBody').innerHTML=`<div class="card"><h2>Generate Bills – Cycle #${cy.id} (${showDate(cy.start)} – ${showDate(cy.end)}, due ${showDate(cy.due)})</h2>
+    <div class="tablewrap"><table><tr><th>Consumer</th><th>Name</th><th>Type</th><th>Units consumed</th><th>Bill Amount</th><th>Status</th><th></th></tr>
+    ${db.customers.length?db.customers.map(c=>{
+      const b=db.bills.find(x=>x.consumerNo===c.consumerNo&&x.cycleId===cy.id);
+      return `<tr><td>${c.consumerNo}</td><td>${esc(c.name)}</td><td>${c.type}</td>
+      <td><input type="number" min="0" id="u_${c.consumerNo}" value="${b?b.units:''}" style="width:110px" ${b&&b.status==='Paid'?'disabled':''}></td>
+      <td>${b?money(b.amount):'—'}</td><td>${b?badge(b):'Not generated'}</td>
+      <td>${b&&b.status==='Paid'?'':`<button class="small" onclick="genBill('${c.consumerNo}')">${b?'Update':'Generate'}</button>`}</td></tr>`}).join(''):`<tr><td colspan="7" class="muted">No customers registered yet.</td></tr>`}
+    </table></div></div>`;
+}
+function genBill(no){
+  const u=parseInt($('u_'+no).value);
+  if(isNaN(u)||u<0) return toast('Enter valid units','err');
+  const c=cust(no),cy=db.cycle;
+  let b=db.bills.find(x=>x.consumerNo===no&&x.cycleId===cy.id);
+  const amt=calcAmount(u,c.type);
+  if(b){b.units=u;b.amount=amt;b.due=cy.due;b.finePerDay=cy.finePerDay;}
+  else db.bills.push({id:db.nextBill++,cycleId:cy.id,consumerNo:no,start:cy.start,end:cy.end,due:cy.due,finePerDay:cy.finePerDay,units:u,amount:amt,fine:0,status:'Unpaid'});
+  save();toast(`Bill for ${no}: ${money(amt)}`,'good');adminBills();
+}
+function adminCustomers(){
+  $('adminBody').innerHTML=`<div class="card"><h2>Registered Customers (${db.customers.length})</h2><div class="tablewrap"><table>
+    <tr><th>Consumer No</th><th>Name</th><th>Email</th><th>Mobile</th><th>Address</th><th>Type</th></tr>
+    ${db.customers.map(c=>`<tr><td>${c.consumerNo}</td><td>${esc(c.name)}</td><td>${esc(c.email)}</td><td>${esc(c.mobile)}</td><td>${esc(c.address)}</td><td>${c.type}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">None yet.</td></tr>'}
+    </table></div></div>`;
+}
+function adminPayments(){
+  const all=[...db.bills].sort((a,b)=>b.id-a.id);
+  $('adminBody').innerHTML=`<div class="card"><h2>All Bills &amp; Payments</h2><div class="tablewrap"><table>
+    <tr><th>Consumer</th><th>Period</th><th>Units</th><th>Amount</th><th>Fine</th><th>Status</th><th>Paid On</th><th>Txn ID</th></tr>
+    ${all.map(b=>`<tr><td>${b.consumerNo}</td><td>${showDate(b.start)} – ${showDate(b.end)}</td><td>${b.units}</td><td>${money(b.amount)}</td><td>${money(calcFine(b))}</td><td>${badge(b)}</td><td>${b.paidOn?showDate(b.paidOn):'—'}</td><td>${b.txnId||'—'}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">No bills yet.</td></tr>'}
+    </table></div></div>`;
+}
+
+route();
+</script>
+</body>
+</html>

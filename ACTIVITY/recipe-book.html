@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spoonful – Digital Recipe Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1d2b24;--green:#1f3d2b;--chilli:#c8362b;--gold:#e9a820;--bg:#f4f7f3;--card:#fff;--line:#d9e2da;--muted:#5d6b63}
+*{box-sizing:border-box;margin:0}
+body{font-family:"DM Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+h1,h2,h3,.logo{font-family:Fraunces,Georgia,serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0;border-radius:8px;padding:.5rem .9rem;background:var(--green);color:#fff;font-weight:500}
+button:hover{background:#2c5a3f}
+button.ghost{background:transparent;color:var(--green);border:1px solid var(--green)}
+button.ghost:hover{background:#e3ece5}
+button.red{background:var(--chilli)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input,select,textarea{border:1px solid var(--line);border-radius:8px;padding:.5rem .7rem;background:#fff;width:100%}
+header{background:var(--green);color:#fff;position:sticky;top:0;z-index:5}
+.bar{max-width:1100px;margin:auto;padding:.7rem 1rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+.logo{font-size:1.6rem;font-weight:800;margin-right:auto}
+.logo span{color:var(--gold)}
+nav{display:flex;gap:.3rem;flex-wrap:wrap}
+nav button{background:transparent;padding:.4rem .7rem}
+nav button.on,nav button:hover{background:rgba(255,255,255,.18)}
+main{max-width:1100px;margin:auto;padding:1.2rem 1rem 3rem}
+.hero{background:var(--green);color:#fff;border-radius:14px;padding:2rem 1.5rem;margin-bottom:1.2rem;display:grid;gap:1rem}
+.hero h1{font-size:clamp(1.8rem,5vw,3rem);line-height:1.1;max-width:14ch}
+.hero p{max-width:50ch;opacity:.9}
+.search{display:flex;gap:.5rem;max-width:560px}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem;margin-bottom:.8rem}
+.filters label{font-size:.85rem;color:var(--muted)}
+.chips{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem}
+.chip{background:#fff;color:var(--green);border:1px solid var(--line);border-radius:99px;padding:.3rem .8rem}
+.chip.on{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+h2.sec{font-size:1.4rem;margin:1.2rem 0 .6rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:1rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.pic{height:140px;display:grid;place-items:center;font-size:4rem;background-size:cover;background-position:center}
+.card .body{padding:.8rem;display:flex;flex-direction:column;gap:.35rem;flex:1}
+.card h3{font-size:1.1rem}
+.meta{font-size:.85rem;color:var(--muted)}
+.tag{display:inline-block;font-size:.75rem;border-radius:99px;padding:.05rem .55rem;background:#e3ece5;color:var(--green);margin-right:.2rem}
+.tag.nv{background:#f8dcd8;color:#8c2119}
+.stars{color:var(--gold);letter-spacing:1px}
+.row{display:flex;gap:.5rem;margin-top:auto;padding-top:.4rem}
+.row button{flex:1}
+.empty{padding:2rem;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--line);border-radius:12px}
+.hidden{display:none!important}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1rem;margin-bottom:1rem}
+table{width:100%;border-collapse:collapse;min-width:640px}
+td,th{border:1px solid var(--line);padding:.4rem;text-align:left}
+th{background:#e3ece5}
+.scroll{overflow-x:auto}
+.list li{display:flex;gap:.6rem;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--line);list-style:none}
+.list li.done span{text-decoration:line-through;color:var(--muted)}
+.list input{width:auto}
+.list .x{margin-left:auto;background:transparent;color:var(--chilli);padding:.1rem .5rem}
+.form{display:grid;gap:.7rem;max-width:640px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+#modal{position:fixed;inset:0;background:rgba(15,25,20,.6);display:none;overflow-y:auto;z-index:10;padding:1rem}
+#modal.open{display:block}
+.sheet{background:#fff;max-width:760px;margin:1rem auto;border-radius:14px;overflow:hidden}
+.sheet .pic{height:200px;font-size:6rem}
+.pad{padding:1.2rem}
+.pad h2{font-size:1.9rem;line-height:1.15}
+.tools{display:flex;gap:.4rem;flex-wrap:wrap;margin:.8rem 0}
+.serve{display:flex;align-items:center;gap:.6rem;margin:.6rem 0}
+.serve button{padding:.2rem .7rem}
+ul.ing{padding-left:1.2rem}
+ol.steps{padding-left:1.3rem}
+ol.steps li,ul.ing li{margin-bottom:.4rem}
+.note{background:#fff6dc;border-left:4px solid var(--gold);padding:.6rem .8rem;border-radius:6px;margin:.8rem 0}
+.cm{border-top:1px solid var(--line);padding:.6rem 0}
+.rate{display:flex;gap:.2rem}
+.toast{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:.6rem 1rem;border-radius:8px;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+footer{text-align:center;color:var(--muted);padding:1.5rem;font-size:.9rem}
+@media(max-width:560px){.two{grid-template-columns:1fr}.hero{padding:1.4rem 1rem}}
+@media print{
+ body>*:not(#modal){display:none!important}
+ #modal{position:static;background:none;padding:0;display:block}
+ .noprint{display:none!important}
+ .sheet{margin:0;box-shadow:none}
+ .pic{height:80px!important;font-size:3rem!important}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="bar">
+  <div class="logo">Spoon<span>ful</span></div>
+  <nav id="nav">
+   <button data-v="home" class="on">Recipes</button>
+   <button data-v="fav">Favorites</button>
+   <button data-v="plan">Meal planner</button>
+   <button data-v="shop">Shopping list <b id="shopCount"></b></button>
+   <button data-v="add">Add recipe</button>
+   <button id="acctBtn">Sign in</button>
+  </nav>
+ </div>
+</header>
+
+<main>
+ <!-- HOME -->
+ <section id="v-home">
+  <div class="hero">
+   <h1>Cook something worth sharing.</h1>
+   <p>Browse recipes by cuisine, diet and difficulty. Save favorites, plan your week and build a shopping list in one place.</p>
+   <form class="search" id="searchForm" role="search">
+    <input id="q" type="search" placeholder="Search by recipe or ingredient (e.g. paneer, rice)" aria-label="Search recipes">
+    <button type="submit">Search</button>
+   </form>
+  </div>
+  <div class="chips" id="catChips" aria-label="Categories"></div>
+  <div class="filters">
+   <div><label for="fCuisine">Cuisine</label><select id="fCuisine"></select></div>
+   <div><label for="fDiet">Dietary preference</label><select id="fDiet"></select></div>
+   <div><label for="fDiff">Difficulty</label><select id="fDiff"></select></div>
+   <div><label for="fTime">Cooking time</label>
+    <select id="fTime"><option value="0">Any time</option><option value="20">Up to 20 min</option><option value="40">Up to 40 min</option><option value="60">Up to 60 min</option></select></div>
+   <div><label for="fSort">Sort by</label>
+    <select id="fSort"><option value="name">Name</option><option value="rating">Top rated</option><option value="time">Quickest</option></select></div>
+  </div>
+  <h2 class="sec" id="homeTitle">Popular recipes</h2>
+  <div class="grid" id="grid"></div>
+ </section>
+
+ <!-- FAVORITES -->
+ <section id="v-fav" class="hidden">
+  <h2 class="sec">Your favorite recipes</h2>
+  <div class="grid" id="favGrid"></div>
+ </section>
+
+ <!-- PLANNER -->
+ <section id="v-plan" class="hidden">
+  <h2 class="sec">Weekly meal planner</h2>
+  <div class="panel scroll"><table id="planTable"></table></div>
+  <button id="planToShop">Add all planned ingredients to shopping list</button>
+  <button class="ghost" id="planClear">Clear plan</button>
+ </section>
+
+ <!-- SHOPPING -->
+ <section id="v-shop" class="hidden">
+  <h2 class="sec">Shopping list</h2>
+  <div class="panel">
+   <form id="shopForm" class="two" style="margin-bottom:.8rem">
+    <input id="shopItem" placeholder="Add an item (e.g. 2 kg onions)" aria-label="New shopping item">
+    <button type="submit">Add item</button>
+   </form>
+   <ul class="list" id="shopList"></ul>
+   <div class="tools">
+    <button class="ghost" id="shopClearDone">Remove checked</button>
+    <button class="ghost" id="shopPrint">Print list</button>
+   </div>
+  </div>
+ </section>
+
+ <!-- ADD RECIPE -->
+ <section id="v-add" class="hidden">
+  <h2 class="sec">Share your own recipe</h2>
+  <form class="form panel" id="addForm">
+   <div><label for="aName">Recipe name</label><input id="aName" required></div>
+   <div class="two">
+    <div><label for="aCat">Category</label><select id="aCat"></select></div>
+    <div><label for="aCuisine">Cuisine</label><input id="aCuisine" required placeholder="e.g. Indian"></div>
+    <div><label for="aDiet">Diet</label>
+     <select id="aDiet"><option>Vegetarian</option><option>Vegan</option><option>Gluten-free</option><option>Non-veg</option></select></div>
+    <div><label for="aDiff">Difficulty</label><select id="aDiff"><option>Easy</option><option>Medium</option><option>Hard</option></select></div>
+    <div><label for="aTime">Total time (minutes)</label><input id="aTime" type="number" min="1" required></div>
+    <div><label for="aServ">Servings</label><input id="aServ" type="number" min="1" required value="4"></div>
+   </div>
+   <div><label for="aImg">Image URL (optional)</label><input id="aImg" type="url" placeholder="https://..."></div>
+   <div><label for="aIng">Ingredients (one per line, format: quantity unit name)</label>
+    <textarea id="aIng" rows="5" required placeholder="2 cup rice&#10;1 tsp salt&#10;3 onions"></textarea></div>
+   <div><label for="aSteps">Steps (one per line)</label><textarea id="aSteps" rows="5" required></textarea></div>
+   <div><label for="aTip">Tips or variations</label><textarea id="aTip" rows="2"></textarea></div>
+   <button type="submit">Publish recipe</button>
+  </form>
+ </section>
+</main>
+
+<footer>Spoonful – a digital recipe book · Built with HTML, CSS and JavaScript</footer>
+
+<div id="modal" role="dialog" aria-modal="true" aria-label="Recipe details"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ---------- DATA ---------- */
+const CATS=["Breakfast","Main course","Starter","Soup","Dessert","Drinks"];
+const BASE=[
+{id:1,name:"Masala Dosa",e:"🥞",c:"#f3c97a",cat:"Breakfast",cu:"South Indian",diet:"Vegetarian",diff:"Medium",time:45,serves:4,
+ ing:[[2,"cup","dosa batter"],[3,"","potatoes, boiled"],[1,"","onion, sliced"],[1,"tsp","mustard seeds"],[0.5,"tsp","turmeric"],[2,"tbsp","oil"]],
+ steps:["Heat 1 tbsp oil, splutter mustard seeds, add onion and cook until soft.","Add turmeric, salt and mashed potatoes. Mix well to make the filling.","Spread a ladle of batter thinly on a hot greased tawa.","Drizzle oil, cook until golden and crisp, add filling, fold and serve."],
+ tip:"Use a cast-iron tawa and wipe it with a cut onion between dosas for easy spreading."},
+{id:2,name:"Fluffy Pancakes",e:"🥞",c:"#f6d9a8",cat:"Breakfast",cu:"American",diet:"Vegetarian",diff:"Easy",time:20,serves:4,
+ ing:[[1.5,"cup","flour"],[2,"tbsp","sugar"],[2,"tsp","baking powder"],[1.25,"cup","milk"],[1,"","egg"],[3,"tbsp","melted butter"]],
+ steps:["Whisk flour, sugar, baking powder and a pinch of salt.","Mix milk, egg and butter, then pour into the dry mix. Stir until just combined.","Cook ¼ cup batter per pancake on a medium pan until bubbles form.","Flip and cook until golden. Serve with honey or fruit."],
+ tip:"Lumpy batter is fine. Over-mixing makes pancakes tough."},
+{id:3,name:"Chicken Biryani",e:"🍛",c:"#f0b469",cat:"Main course",cu:"Indian",diet:"Non-veg",diff:"Hard",time:75,serves:6,
+ ing:[[500,"g","chicken"],[2,"cup","basmati rice"],[1,"cup","yogurt"],[2,"","onions, fried"],[2,"tbsp","biryani masala"],[1,"tbsp","ginger-garlic paste"],[3,"tbsp","ghee"]],
+ steps:["Marinate chicken with yogurt, masala, paste and salt for 30 minutes.","Parboil soaked rice with whole spices until 70% cooked.","Layer chicken, fried onions and rice in a heavy pot. Drizzle ghee.","Seal and cook on low heat for 25 minutes. Rest 10 minutes before serving."],
+ tip:"Seal the pot lid with dough or foil so the steam stays in."},
+{id:4,name:"Paneer Butter Masala",e:"🧈",c:"#f2a65a",cat:"Main course",cu:"Indian",diet:"Vegetarian",diff:"Medium",time:40,serves:4,
+ ing:[[250,"g","paneer, cubed"],[4,"","tomatoes"],[2,"tbsp","butter"],[0.5,"cup","cream"],[1,"tbsp","ginger-garlic paste"],[1,"tsp","garam masala"],[1,"tsp","chilli powder"]],
+ steps:["Boil tomatoes, then blend into a smooth puree.","Melt butter, fry the paste, add puree and spices. Cook 10 minutes.","Stir in cream and paneer. Simmer 5 minutes.","Finish with garam masala and serve with naan."],
+ tip:"Soak paneer in warm water for 10 minutes to keep it soft."},
+{id:5,name:"Spaghetti Aglio e Olio",e:"🍝",c:"#f4dc9b",cat:"Main course",cu:"Italian",diet:"Vegan",diff:"Easy",time:20,serves:2,
+ ing:[[200,"g","spaghetti"],[4,"","garlic cloves, sliced"],[4,"tbsp","olive oil"],[0.5,"tsp","chilli flakes"],[2,"tbsp","parsley, chopped"]],
+ steps:["Boil spaghetti in salted water until al dente. Save a cup of pasta water.","Warm olive oil and gently cook garlic until pale gold.","Add chilli flakes, spaghetti and a splash of pasta water. Toss well.","Top with parsley and serve at once."],
+ tip:"Keep the heat low so the garlic does not burn and turn bitter."},
+{id:6,name:"Veg Fried Rice",e:"🍚",c:"#e8d28a",cat:"Main course",cu:"Chinese",diet:"Vegan",diff:"Easy",time:25,serves:3,
+ ing:[[2,"cup","cooked rice, cold"],[1,"cup","mixed vegetables"],[2,"tbsp","soy sauce"],[2,"","spring onions"],[1,"tbsp","oil"],[0.5,"tsp","pepper"]],
+ steps:["Heat oil on high heat and stir-fry vegetables for 3 minutes.","Add cold rice and toss until grains separate.","Add soy sauce and pepper. Mix well.","Garnish with spring onion and serve."],
+ tip:"Day-old rice gives the best texture."},
+{id:7,name:"Gulab Jamun",e:"🍩",c:"#d9915a",cat:"Dessert",cu:"Indian",diet:"Vegetarian",diff:"Hard",time:50,serves:6,
+ ing:[[1,"cup","milk powder"],[0.25,"cup","flour"],[0.25,"cup","milk"],[1.5,"cup","sugar"],[1.5,"cup","water"],[3,"","cardamom pods"],[2,"cup","oil, for frying"]],
+ steps:["Boil sugar, water and cardamom for 8 minutes to make a light syrup.","Mix milk powder, flour and milk into a soft dough. Roll into smooth balls.","Fry on low heat until deep brown.","Soak in warm syrup for at least 1 hour."],
+ tip:"Crack-free balls need a smooth dough with no dry spots."},
+{id:8,name:"Chocolate Brownies",e:"🍫",c:"#a9744f",cat:"Dessert",cu:"American",diet:"Vegetarian",diff:"Easy",time:40,serves:9,
+ ing:[[100,"g","butter"],[150,"g","dark chocolate"],[1,"cup","sugar"],[2,"","eggs"],[0.5,"cup","flour"],[0.25,"cup","cocoa powder"]],
+ steps:["Melt butter and chocolate together, then cool slightly.","Whisk in sugar and eggs.","Fold in flour and cocoa until just mixed.","Bake at 175°C for 25 minutes. Cool before cutting."],
+ tip:"Slightly under-bake for fudgy centers."},
+{id:9,name:"Greek Salad",e:"🥗",c:"#b9d9a0",cat:"Starter",cu:"Greek",diet:"Gluten-free",diff:"Easy",time:15,serves:2,
+ ing:[[2,"","tomatoes"],[1,"","cucumber"],[0.5,"","red onion"],[100,"g","feta cheese"],[10,"","olives"],[2,"tbsp","olive oil"]],
+ steps:["Chop tomatoes, cucumber and onion into chunky pieces.","Add olives and place feta on top.","Drizzle olive oil, sprinkle oregano and salt. Serve cold."],
+ tip:"Add salt just before serving so the vegetables stay crisp."},
+{id:10,name:"Tomato Rasam",e:"🍲",c:"#e58c6b",cat:"Soup",cu:"South Indian",diet:"Vegan",diff:"Easy",time:25,serves:4,
+ ing:[[3,"","tomatoes, crushed"],[1,"tbsp","rasam powder"],[1,"tbsp","tamarind pulp"],[1,"tsp","cumin"],[1,"","garlic clove"],[2,"cup","water"]],
+ steps:["Boil tomatoes, tamarind, rasam powder, salt and water for 10 minutes.","Temper cumin and garlic in a little oil.","Pour the tempering into the rasam and simmer 2 minutes.","Garnish with coriander and serve hot."],
+ tip:"Do not boil hard after tempering. It keeps the aroma."},
+{id:11,name:"Chicken Tacos",e:"🌮",c:"#f2c14e",cat:"Main course",cu:"Mexican",diet:"Non-veg",diff:"Medium",time:35,serves:4,
+ ing:[[400,"g","chicken, strips"],[8,"","small tortillas"],[1,"tbsp","taco seasoning"],[1,"","tomato, diced"],[0.5,"cup","shredded lettuce"],[0.5,"cup","salsa"]],
+ steps:["Toss chicken with seasoning and cook in a hot pan for 8 minutes.","Warm tortillas on a dry pan.","Fill with chicken, tomato, lettuce and salsa.","Serve with lime wedges."],
+ tip:"Add a squeeze of lime to the chicken at the end."},
+{id:12,name:"Mango Lassi",e:"🥭",c:"#f7c948",cat:"Drinks",cu:"Indian",diet:"Vegetarian",diff:"Easy",time:5,serves:2,
+ ing:[[1,"cup","mango pulp"],[1,"cup","yogurt"],[0.5,"cup","cold milk"],[2,"tbsp","sugar"],[4,"","ice cubes"]],
+ steps:["Add all ingredients to a blender.","Blend until smooth and frothy.","Pour into glasses and serve cold."],
+ tip:"Use ripe Alphonso or Banganapalli mangoes for the best flavor."}
+];
+
+/* ---------- STORAGE ---------- */
+const store={
+ get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},
+ set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+let user=store.get("rb_user",null);
+let mine=store.get("rb_mine",[]);
+let favs=store.get("rb_favs",[]);
+let reviews=store.get("rb_reviews",{});
+let plan=store.get("rb_plan",{});
+let shop=store.get("rb_shop",[]);
+let filterCat="All";
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],MEALS=["Breakfast","Lunch","Dinner"];
+const all=()=>[...BASE,...mine];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=n=>{const r=Math.round(n*100)/100;return r%1===0?r:r.toFixed(2).replace(/0+$/,"")};
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),1800)}
+const avg=id=>{const r=reviews[id]||[];return r.length?r.reduce((a,b)=>a+b.rating,0)/r.length:0};
+const starStr=n=>"★".repeat(Math.round(n))+"☆".repeat(5-Math.round(n));
+
+/* ---------- FILTERS ---------- */
+function fillSelect(sel,label,vals){$(sel).innerHTML=`<option value="">${label}</option>`+vals.map(v=>`<option>${esc(v)}</option>`).join("")}
+function initFilters(){
+ const rs=all();
+ fillSelect("#fCuisine","All cuisines",[...new Set(rs.map(r=>r.cu))].sort());
+ fillSelect("#fDiet","Any diet",["Vegetarian","Vegan","Gluten-free","Non-veg"]);
+ fillSelect("#fDiff","Any difficulty",["Easy","Medium","Hard"]);
+ $("#aCat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");
+ $("#catChips").innerHTML=["All",...CATS].map(c=>`<button class="chip ${c===filterCat?"on":""}" data-c="${c}">${c}</button>`).join("");
+}
+function matches(r){
+ const q=$("#q").value.trim().toLowerCase();
+ if(filterCat!=="All"&&r.cat!==filterCat)return false;
+ if($("#fCuisine").value&&r.cu!==$("#fCuisine").value)return false;
+ if($("#fDiet").value&&r.diet!==$("#fDiet").value)return false;
+ if($("#fDiff").value&&r.diff!==$("#fDiff").value)return false;
+ const t=+$("#fTime").value;if(t&&r.time>t)return false;
+ if(q){const hay=(r.name+" "+r.cu+" "+r.cat+" "+r.ing.map(i=>i[2]).join(" ")).toLowerCase();
+  if(!q.split(/\s+/).every(w=>hay.includes(w)))return false}
+ return true;
+}
+function card(r){
+ const img=r.img?`background-image:url('${esc(r.img)}')`:`background:${r.c}`;
+ const a=avg(r.id);
+ return `<article class="card"><div class="pic" style="${img}" role="img" aria-label="${esc(r.name)}">${r.img?"":r.e||"🍽️"}</div>
+ <div class="body"><h3>${esc(r.name)}</h3>
+ <div><span class="tag ${r.diet==="Non-veg"?"nv":""}">${esc(r.diet)}</span><span class="tag">${esc(r.diff)}</span></div>
+ <div class="meta">${esc(r.cu)} · ${r.time} min · serves ${r.serves}</div>
+ <div class="stars" aria-label="Rating">${a?starStr(a)+" <span class='meta'>("+(reviews[r.id].length)+")</span>":"<span class='meta'>No ratings yet</span>"}</div>
+ <div class="row"><button data-open="${r.id}">View recipe</button>
+ <button class="ghost" data-fav="${r.id}" aria-label="Toggle favorite">${favs.includes(r.id)?"♥ Saved":"♡ Save"}</button></div></div></article>`;
+}
+function renderGrid(){
+ let rs=all().filter(matches);
+ const s=$("#fSort").value;
+ rs.sort((a,b)=>s==="rating"?avg(b.id)-avg(a.id):s==="time"?a.time-b.time:a.name.localeCompare(b.name));
+ $("#homeTitle").textContent=$("#q").value||filterCat!=="All"?`${rs.length} recipe${rs.length===1?"":"s"} found`:"Popular recipes";
+ $("#grid").innerHTML=rs.length?rs.map(card).join(""):`<div class="empty">No recipes match. Try removing a filter or searching another ingredient.</div>`;
+}
+function renderFavs(){
+ const rs=all().filter(r=>favs.includes(r.id));
+ $("#favGrid").innerHTML=rs.length?rs.map(card).join(""):`<div class="empty">You have not saved any recipes yet. Tap “Save” on a recipe to keep it here.</div>`;
+}
+
+/* ---------- RECIPE MODAL ---------- */
+let cur=null,curServ=0;
+function openRecipe(id){cur=all().find(r=>r.id===id);curServ=cur.serves;drawModal();$("#modal").classList.add("open");document.body.style.overflow="hidden"}
+function closeModal(){$("#modal").classList.remove("open");document.body.style.overflow=""}
+function scaled(r,n){return r.ing.map(([q,u,name])=>[q*n/r.serves,u,name])}
+function ingText(i){return `${fmt(i[0])}${i[1]?" "+i[1]:""} ${i[2]}`}
+function drawModal(){
+ const r=cur,a=avg(r.id),rv=reviews[r.id]||[];
+ const img=r.img?`background-image:url('${esc(r.img)}')`:`background:${r.c}`;
+ $("#modal").innerHTML=`<div class="sheet"><div class="pic" style="${img}">${r.img?"":r.e||"🍽️"}</div><div class="pad">
+ <div class="tools noprint"><button class="ghost" id="mClose">← Back</button></div>
+ <h2>${esc(r.name)}</h2>
+ <p class="meta">${esc(r.cu)} · ${esc(r.cat)} · ${esc(r.diet)} · ${esc(r.diff)} · Total time ${r.time} min</p>
+ <p class="stars">${a?starStr(a)+" "+a.toFixed(1):""}</p>
+ <div class="tools noprint">
+  <button data-fav="${r.id}" id="mFav">${favs.includes(r.id)?"♥ Saved":"♡ Save"}</button>
+  <button class="ghost" id="mShop">Add to shopping list</button>
+  <button class="ghost" id="mPrint">Print</button>
+  <button class="ghost" data-share="wa">WhatsApp</button>
+  <button class="ghost" data-share="fb">Facebook</button>
+  <button class="ghost" data-share="x">X</button>
+  <button class="ghost" data-share="copy">Copy text</button>
+ </div>
+ <h3>Ingredients</h3>
+ <div class="serve"><span>Servings</span><button class="ghost noprint" id="sMinus" aria-label="Fewer servings">−</button><b id="sNum">${curServ}</b><button class="ghost noprint" id="sPlus" aria-label="More servings">+</button></div>
+ <ul class="ing" id="ingList">${scaled(r,curServ).map(i=>`<li>${esc(ingText(i))}</li>`).join("")}</ul>
+ <h3 style="margin-top:1rem">Instructions</h3>
+ <ol class="steps">${r.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
+ ${r.tip?`<div class="note"><b>Tip:</b> ${esc(r.tip)}</div>`:""}
+ <h3 style="margin-top:1rem">Ratings and comments (${rv.length})</h3>
+ <form id="rvForm" class="form noprint" style="margin:.6rem 0">
+  <div class="two"><input id="rvName" placeholder="Your name" value="${esc(user||"")}" required aria-label="Your name">
+  <select id="rvRate" aria-label="Rating"><option value="5">★★★★★ Excellent</option><option value="4">★★★★ Good</option><option value="3">★★★ Okay</option><option value="2">★★ Poor</option><option value="1">★ Bad</option></select></div>
+  <textarea id="rvText" rows="2" placeholder="Share feedback, ask a question or describe how it turned out" required></textarea>
+  <button type="submit">Post review</button>
+ </form>
+ ${rv.length?rv.slice().reverse().map(x=>`<div class="cm"><b>${esc(x.user)}</b> <span class="stars">${starStr(x.rating)}</span> <span class="meta">${esc(x.date)}</span><p>${esc(x.text)}</p></div>`).join(""):`<p class="meta">Be the first to review this recipe.</p>`}
+ </div></div>`;
+}
+function setServ(n){curServ=Math.max(1,n);$("#sNum").textContent=curServ;$("#ingList").innerHTML=scaled(cur,curServ).map(i=>`<li>${esc(ingText(i))}</li>`).join("")}
+function shareText(){return `${cur.name} (${cur.time} min, serves ${curServ})\nIngredients:\n`+scaled(cur,curServ).map(i=>"- "+ingText(i)).join("\n")+"\n\nSteps:\n"+cur.steps.map((s,i)=>`${i+1}. ${s}`).join("\n")}
+
+/* ---------- SHOPPING ---------- */
+function saveShop(){store.set("rb_shop",shop);renderShop()}
+function addShop(items){items.forEach(t=>{if(!shop.some(s=>s.t===t))shop.push({t,d:false})});saveShop()}
+function renderShop(){
+ $("#shopCount").textContent=shop.length?`(${shop.length})`:"";
+ $("#shopList").innerHTML=shop.length?shop.map((s,i)=>`<li class="${s.d?"done":""}"><input type="checkbox" data-chk="${i}" ${s.d?"checked":""} aria-label="Mark bought"><span>${esc(s.t)}</span><button class="x" data-del="${i}" aria-label="Remove item">✕</button></li>`).join(""):`<li><span class="meta">Your list is empty. Add items here or from any recipe.</span></li>`;
+}
+
+/* ---------- PLANNER ---------- */
+function renderPlan(){
+ const opts=`<option value="">–</option>`+all().map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join("");
+ $("#planTable").innerHTML=`<tr><th>Day</th>${MEALS.map(m=>`<th>${m}</th>`).join("")}</tr>`+
+ DAYS.map(d=>`<tr><th>${d}</th>${MEALS.map(m=>{const v=plan[d+m]||"";return `<td><select data-pk="${d+m}" aria-label="${d} ${m}">${opts.replace(`value="${v}"`,`value="${v}" selected`)}</select></td>`}).join("")}</tr>`).join("");
+}
+
+/* ---------- VIEWS ---------- */
+function show(v){
+ ["home","fav","plan","shop","add"].forEach(x=>$("#v-"+x).classList.toggle("hidden",x!==v));
+ document.querySelectorAll("#nav button[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+ if(v==="fav")renderFavs();if(v==="plan")renderPlan();if(v==="home")renderGrid();
+ window.scrollTo(0,0);
+}
+function acct(){$("#acctBtn").textContent=user?`Hi, ${user} (sign out)`:"Sign in"}
+
+/* ---------- EVENTS ---------- */
+document.addEventListener("click",e=>{
+ const t=e.target.closest("button");if(!t)return;
+ if(t.dataset.v)return show(t.dataset.v);
+ if(t.dataset.c){filterCat=t.dataset.c;initFilters();return renderGrid()}
+ if(t.dataset.open)return openRecipe(+t.dataset.open);
+ if(t.dataset.fav){const id=+t.dataset.fav;favs=favs.includes(id)?favs.filter(x=>x!==id):[...favs,id];store.set("rb_favs",favs);
+  toast(favs.includes(id)?"Saved to favorites":"Removed from favorites");
+  if(cur&&$("#modal").classList.contains("open"))drawModal();renderGrid();renderFavs();return}
+ if(t.id==="mClose")return closeModal();
+ if(t.id==="sMinus")return setServ(curServ-1);
+ if(t.id==="sPlus")return setServ(curServ+1);
+ if(t.id==="mPrint")return window.print();
+ if(t.id==="mShop"){addShop(scaled(cur,curServ).map(ingText));return toast("Ingredients added to shopping list")}
+ if(t.dataset.share){const txt=shareText(),u=encodeURIComponent(txt);
+  if(t.dataset.share==="wa")window.open("https://wa.me/?text="+u,"_blank");
+  if(t.dataset.share==="fb")window.open("https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(location.href)+"&quote="+encodeURIComponent(cur.name),"_blank");
+  if(t.dataset.share==="x")window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent("Try this recipe: "+cur.name),"_blank");
+  if(t.dataset.share==="copy")(navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("Recipe copied")).catch(()=>toast("Copy not available"));
+  return}
+ if(t.dataset.del!==undefined){shop.splice(+t.dataset.del,1);return saveShop()}
+ if(t.id==="shopClearDone"){shop=shop.filter(s=>!s.d);return saveShop()}
+ if(t.id==="shopPrint"){const w=window.open("","_blank");w.document.write("<h2>Shopping list</h2><ul>"+shop.map(s=>`<li>${esc(s.t)}</li>`).join("")+"</ul>");w.document.close();w.print();return}
+ if(t.id==="planClear"){plan={};store.set("rb_plan",plan);return renderPlan()}
+ if(t.id==="planToShop"){const items=[];Object.values(plan).forEach(id=>{const r=all().find(x=>x.id==id);if(r)r.ing.forEach(i=>items.push(ingText(i)))});
+  if(!items.length)return toast("Plan some meals first");addShop(items);return toast("Added to shopping list")}
+ if(t.id==="acctBtn"){if(user){user=null;store.set("rb_user",null)}else{const n=prompt("Enter your name to sign in:");if(n&&n.trim()){user=n.trim();store.set("rb_user",user)}}acct()}
+});
+$("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+document.addEventListener("change",e=>{
+ if(e.target.dataset.chk!==undefined){shop[+e.target.dataset.chk].d=e.target.checked;saveShop()}
+ if(e.target.dataset.pk){plan[e.target.dataset.pk]=e.target.value;store.set("rb_plan",plan)}
+ if(e.target.closest(".filters"))renderGrid();
+});
+$("#searchForm").addEventListener("submit",e=>{e.preventDefault();renderGrid()});
+$("#q").addEventListener("input",renderGrid);
+$("#shopForm").addEventListener("submit",e=>{e.preventDefault();const v=$("#shopItem").value.trim();if(v){addShop([v]);$("#shopItem").value=""}});
+document.addEventListener("submit",e=>{
+ if(e.target.id==="rvForm"){e.preventDefault();
+  const x={user:$("#rvName").value.trim(),rating:+$("#rvRate").value,text:$("#rvText").value.trim(),date:new Date().toLocaleDateString()};
+  (reviews[cur.id]=reviews[cur.id]||[]).push(x);store.set("rb_reviews",reviews);user=user||x.user;store.set("rb_user",user);acct();drawModal();renderGrid();toast("Review posted")}
+});
+$("#addForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const ing=$("#aIng").value.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
+  const m=l.match(/^([\d.\/]+)\s+(\S+)\s+(.+)$/),m2=l.match(/^([\d.\/]+)\s+(.+)$/);
+  const num=s=>s.includes("/")?s.split("/").reduce((a,b)=>a/b):+s;
+  if(m&&/^(cup|cups|tsp|tbsp|g|kg|ml|l|oz|lb|pinch)$/i.test(m[2]))return[num(m[1]),m[2],m[3]];
+  if(m2)return[num(m2[1]),"",m2[2]];
+  return[1,"",l];
+ });
+ const r={id:Date.now(),name:$("#aName").value.trim(),e:"🍽️",c:"#cfe0d2",cat:$("#aCat").value,cu:$("#aCuisine").value.trim(),diet:$("#aDiet").value,diff:$("#aDiff").value,
+  time:+$("#aTime").value,serves:+$("#aServ").value,img:$("#aImg").value.trim(),ing,
+  steps:$("#aSteps").value.split("\n").map(s=>s.trim()).filter(Boolean),tip:$("#aTip").value.trim()};
+ mine.push(r);store.set("rb_mine",mine);e.target.reset();initFilters();toast("Recipe published");show("home");
+});
+
+/* ---------- START ---------- */
+initFilters();renderGrid();renderShop();acct();
+</script>
+</body>
+</html>

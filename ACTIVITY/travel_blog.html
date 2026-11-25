@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wanderlog – A Travel Blog</title>
+<style>
+:root{--bg:#faf7f2;--card:#fff;--text:#222a33;--muted:#667080;--pri:#e0662b;--pri2:#c4531c;--dark:#1d3b4f;--line:#e6dfd3}
+@media (prefers-color-scheme:dark){:root{--bg:#12171d;--card:#1b222b;--text:#ebeef2;--muted:#9ba5b2;--pri:#ff8a50;--pri2:#ff7430;--dark:#0c1a24;--line:#2c3541}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text);line-height:1.65}
+h1,h2,h3,nav,button,.tag,label,input,textarea,select{font-family:'Segoe UI',Arial,sans-serif}
+a{color:var(--pri);text-decoration:none}
+header{background:var(--dark);color:#fff;position:sticky;top:0;z-index:50}
+.bar{max-width:1100px;margin:auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.logo{font:700 1.4rem 'Segoe UI',Arial;color:#fff;display:flex;align-items:center;gap:8px}
+.logo span{color:var(--pri)}
+nav a{color:#fff;margin-left:16px;font-size:.95rem;padding-bottom:3px;border-bottom:2px solid transparent}
+nav a.on,nav a:hover{border-color:var(--pri)}
+main{max-width:1100px;margin:auto;padding:20px 16px 40px}
+.hero{border-radius:14px;overflow:hidden;position:relative;min-height:320px;display:flex;align-items:flex-end;background-size:cover;background-position:center}
+.hero div{background:linear-gradient(transparent,rgba(0,0,0,.75));width:100%;padding:70px 28px 26px;color:#fff}
+.hero h1{margin:0 0 6px;font-size:2.1rem}
+.btn{display:inline-block;background:var(--pri);color:#fff;border:0;padding:9px 18px;border-radius:6px;cursor:pointer;font-size:.9rem}
+.btn:hover{background:var(--pri2)}
+.btn.alt{background:transparent;color:var(--pri);border:1px solid var(--pri)}
+h2.sec{margin:34px 0 14px;font-size:1.4rem;border-left:5px solid var(--pri);padding-left:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.15)}
+.card img{width:100%;height:190px;object-fit:cover;display:block}
+.card .in{padding:14px}
+.card h3{margin:6px 0;font-size:1.1rem}
+.card p{margin:0;color:var(--muted);font-size:.92rem}
+.tag{display:inline-block;font-size:.72rem;background:var(--pri);color:#fff;padding:2px 9px;border-radius:20px;margin-right:5px}
+.tag.o{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--text);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:.85rem}
+.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+article{max-width:780px;margin:auto}
+article h1{font-size:2.2rem;margin:.2em 0}
+.meta{color:var(--muted);font:.85rem 'Segoe UI',Arial}
+article img.lead{width:100%;border-radius:12px;margin:14px 0 4px}
+figcaption,.cap{font:italic .85rem Georgia;color:var(--muted);text-align:center}
+article h2{margin-top:1.6em;font-family:'Segoe UI',Arial}
+.tips{background:var(--card);border-left:5px solid var(--pri);padding:12px 18px;border-radius:6px}
+.gal{margin:14px 0}
+.gal .main{position:relative;border-radius:12px;overflow:hidden;background:#000}
+.gal .main img{width:100%;display:block;cursor:zoom-in;max-height:440px;object-fit:cover}
+.gal .nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);color:#fff;border:0;font-size:1.5rem;width:40px;height:50px;cursor:pointer}
+.thumbs{display:flex;gap:8px;margin-top:8px}
+.thumbs img{width:25%;height:70px;object-fit:cover;border-radius:6px;cursor:pointer;opacity:.6;border:2px solid transparent}
+.thumbs img.on{opacity:1;border-color:var(--pri)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:100;display:none;align-items:center;justify-content:center;flex-direction:column}
+#lb.show{display:flex}
+#lb img{max-width:92vw;max-height:78vh;border-radius:8px}
+#lb .cap{color:#ddd;margin-top:10px}
+#lb button{position:absolute;background:rgba(255,255,255,.15);color:#fff;border:0;font-size:2rem;cursor:pointer;padding:6px 16px;border-radius:6px}
+.map-wrap{background:#bfe1f0;border-radius:12px;overflow:hidden;position:relative;border:1px solid var(--line)}
+@media (prefers-color-scheme:dark){.map-wrap{background:#17344a}}
+svg.map{width:100%;display:block}
+.land{fill:#a9c98a;stroke:#7fa266;stroke-width:.4}
+@media (prefers-color-scheme:dark){.land{fill:#3f5a3a;stroke:#2f452c}}
+.pin{cursor:pointer}
+.pin circle.o{fill:var(--pri);stroke:#fff;stroke-width:1}
+.pin circle.p{fill:var(--pri);opacity:.35;animation:pl 1.8s infinite}
+@keyframes pl{0%{r:2.5;opacity:.6}100%{r:9;opacity:0}}
+#tip{position:absolute;background:var(--dark);color:#fff;padding:6px 10px;border-radius:6px;font:.8rem 'Segoe UI';pointer-events:none;display:none;white-space:nowrap}
+.form input,.form textarea{width:100%;padding:9px;margin:5px 0;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text)}
+.cm{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:10px 0}
+.cm b{font-family:'Segoe UI'}
+.two{display:grid;grid-template-columns:260px 1fr;gap:26px;align-items:start}
+.two img{width:100%;border-radius:50%;aspect-ratio:1;object-fit:cover}
+@media(max-width:700px){.two{grid-template-columns:1fr}.hero h1{font-size:1.5rem}}
+.pack label{display:block;padding:3px 0;cursor:pointer}
+.pack input{margin-right:8px}
+footer{background:var(--dark);color:#cfd8df;text-align:center;padding:24px 16px;font-family:'Segoe UI',Arial;font-size:.9rem}
+footer a{color:#fff;margin:0 8px}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <a class="logo" href="#/"><svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="13" fill="none" stroke="#e0662b" stroke-width="2"/><path d="M15 5l3 10-3 10-3-10z" fill="#e0662b"/></svg>Wander<span>log</span></a>
+  <nav id="nav">
+    <a href="#/" data-r="home">Home</a>
+    <a href="#/destinations" data-r="destinations">Destinations</a>
+    <a href="#/map" data-r="map">Map</a>
+    <a href="#/resources" data-r="resources">Resources</a>
+    <a href="#/about" data-r="about">About</a>
+  </nav>
+</div></header>
+<main id="app"></main>
+<div id="lb"><button style="top:14px;right:18px" onclick="closeLb()">&times;</button><button style="left:14px" onclick="lbStep(-1)">&#8249;</button><button style="right:14px" onclick="lbStep(1)">&#8250;</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
+<footer>
+  <div>Follow the journey:
+    <a href="https://instagram.com" target="_blank" rel="noopener">Instagram</a>
+    <a href="https://x.com" target="_blank" rel="noopener">X</a>
+    <a href="https://youtube.com" target="_blank" rel="noopener">YouTube</a>
+    <a href="https://facebook.com" target="_blank" rel="noopener">Facebook</a></div>
+  <div style="margin-top:8px">&copy; 2026 Wanderlog. Stories from around the world.</div>
+</footer>
+
+<script>
+/* ---------- Data ---------- */
+const PAL = {kyoto:['#f6b7c4','#c0506e','#4a2a45'], santorini:['#8ecbf2','#2f7fc1','#f4f1ea'], banff:['#a5d6f5','#2f6f8f','#1c3b32'],
+  marrakech:['#f7c883','#d2693a','#6e2f1e'], cusco:['#d9e6b3','#6c9a4a','#33422a'], queenstown:['#b7dcf0','#3b7ea1','#27483a']};
+const CATS = ['Destinations','Travel Guides','Food Experiences','Cultural Insights'];
+const POSTS = [
+ {id:'kyoto',title:'Temples and Tea in Kyoto',place:'Kyoto, Japan',region:'Asia',cat:'Cultural Insights',lat:35.01,lng:135.77,date:'12 Oct 2026',
+  sum:'Dawn at Fushimi Inari, a tea ceremony, and quiet lanes in Gion.',
+  body:['I arrived in Kyoto just before sunrise and walked straight to Fushimi Inari. Thousands of vermilion gates glowed in the soft light, and for twenty minutes I had the mountain path almost to myself.','Later, in a wooden tea house in Gion, a host explained the ceremony: every movement is deliberate, every cup an act of welcome. It slowed my whole trip down.'],
+  tips:['Visit Fushimi Inari before 7 a.m. to avoid crowds.','Buy an IC card for buses and trains.','Carry cash; many small shops do not take cards.'],
+  caps:['Sunrise over the torii gates','Matcha and wagashi','Gion backstreets','Bamboo grove in Arashiyama']},
+ {id:'santorini',title:'Sunsets and Seafood in Santorini',place:'Santorini, Greece',region:'Europe',cat:'Food Experiences',lat:36.39,lng:25.46,date:'28 Aug 2026',
+  sum:'Whitewashed villages, fresh grilled octopus, and the famous Oia sunset.',
+  body:['Santorini is famous for its sunsets, but I fell for the food. A family taverna in Pyrgos served grilled octopus, fava puree and tomato fritters that tasted of the island itself.','We hiked the caldera path from Fira to Oia in the morning cool and ended the day with crisp local white wine as the sky turned orange.'],
+  tips:['Hike Fira to Oia early morning; it takes about three hours.','Book sunset tables a day ahead.','Try the volcanic-soil Assyrtiko wine.'],
+  caps:['Blue domes of Oia','Grilled octopus at Pyrgos','Caldera hike','Sunset from the castle']},
+ {id:'banff',title:'Turquoise Lakes of Banff',place:'Banff, Canada',region:'North America',cat:'Destinations',lat:51.18,lng:-115.57,date:'3 Jul 2026',
+  sum:'Canoeing on Moraine Lake and wildlife along the Icefields Parkway.',
+  body:['Banff in summer feels unreal. Lake Louise and Moraine Lake glow a milky turquoise that no photograph really captures. We paddled out at 6 a.m. and the water was perfectly still.','Driving the Icefields Parkway, we passed elk, a black bear and glaciers that hang over the road like frozen waterfalls.'],
+  tips:['Reserve the Moraine Lake shuttle early.','Carry bear spray on trails.','Layer clothing; weather changes fast.'],
+  caps:['Moraine Lake at dawn','Canoe on Lake Louise','Icefields Parkway','Peyto Lake viewpoint']},
+ {id:'marrakech',title:'Lost in the Marrakech Souks',place:'Marrakech, Morocco',region:'Africa',cat:'Travel Guides',lat:31.63,lng:-8.0,date:'15 Mar 2026',
+  sum:'A practical guide to haggling, riads and the Jemaa el-Fnaa night market.',
+  body:['The Marrakech medina is a maze of spice, leather and lantern stalls. Getting lost is part of the fun, and a friendly shopkeeper always points you back toward the main square.','At night Jemaa el-Fnaa fills with storytellers, musicians and food stalls. I tried slow-cooked tagine and fresh orange juice for the price of a coffee back home.'],
+  tips:['Start haggling at around half the asking price.','Stay in a riad inside the medina.','Dress modestly and carry small change.'],
+  caps:['Spice stall in the souk','Riad courtyard','Jemaa el-Fnaa at night','Tagine for dinner']},
+ {id:'cusco',title:'The Road to Machu Picchu',place:'Cusco, Peru',region:'South America',cat:'Travel Guides',lat:-13.53,lng:-71.97,date:'20 Jan 2026',
+  sum:'Acclimatising in Cusco and trekking the Inca trail with local guides.',
+  body:['Cusco sits at 3,400 metres, so we spent two slow days drinking coca tea and wandering Inca stonework before starting the trek.','Four days later, we reached the Sun Gate as the clouds lifted off Machu Picchu. After all the climbing, the view felt earned.'],
+  tips:['Spend two days acclimatising before hiking.','Book Inca Trail permits months in advance.','Pack rain gear even in dry season.'],
+  caps:['Cusco main square','Trail through cloud forest','Sun Gate view','Machu Picchu sunrise']},
+ {id:'queenstown',title:'Adventure Capital: Queenstown',place:'Queenstown, New Zealand',region:'Oceania',cat:'Destinations',lat:-45.03,lng:168.66,date:'9 Dec 2025',
+  sum:'Bungee, lake cruises and the quiet drive to Milford Sound.',
+  body:['Queenstown has a reputation for adrenaline, and I took the plunge with a bungee jump over the Kawarau River. The calm after was perfect: a slow steamship cruise on Lake Wakatipu.','The road to Milford Sound is one of the most beautiful drives I have done, with waterfalls pouring from every cliff after rain.'],
+  tips:['Book Milford Sound cruises for midday for fewer crowds.','Rent a car to stop at viewpoints.','Try a Fergburger, but expect a queue.'],
+  caps:['Lake Wakatipu','Bungee at Kawarau','Milford Sound','Remarkables ridge']}
+];
+const REGIONS = ['All', ...new Set(POSTS.map(p=>p.region))];
+
+/* ---------- Helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function scene(id,k){
+  const [a,b,c] = PAL[id];
+  const peaks = [[0,300,90,120,190,230,300,110,420,240,520,150,600,300],[0,300,120,170,260,100,380,200,480,130,600,300],
+    [0,300,60,210,170,150,300,230,430,120,540,200,600,300],[0,300,150,140,230,200,330,90,450,190,600,300]][k%4];
+  let pts=''; for(let i=0;i<peaks.length;i+=2) pts+=peaks[i]+','+peaks[i+1]+' ';
+  const sx = [460,150,320,500][k%4];
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="600" height="300" fill="url(#g)"/><circle cx="${sx}" cy="${70+k*8}" r="${30+k*3}" fill="#fff" opacity=".8"/><polygon points="${pts}" fill="${c}" opacity=".85"/><polygon points="0,300 0,${255-k*8} 150,${235} 320,${265-k*6} 600,${240} 600,300" fill="${c}"/></svg>`;
+  return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
+}
+const P = id => POSTS.find(p=>p.id===id);
+function card(p){
+  return `<div class="card" onclick="location.hash='#/post/${p.id}'"><img src="${scene(p.id,0)}" alt="${esc(p.place)}"><div class="in"><span class="tag">${p.region}</span><span class="tag o">${p.cat}</span><h3>${p.title}</h3><p>${p.sum}</p><p class="meta" style="margin-top:8px">${p.date} · ${p.place}</p></div></div>`;
+}
+let timer=null, gal={id:null,i:0}, filt={region:'All',cat:'All'};
+
+/* ---------- Views ---------- */
+function home(){
+  const f = POSTS[0];
+  return `<div class="hero" style="background-image:url('${scene(f.id,1)}')"><div><span class="tag">Featured</span><h1>${f.title}</h1><p>${f.sum}</p><a class="btn" href="#/post/${f.id}">Read the story</a></div></div>
+  <h2 class="sec">Recent Adventures</h2><div class="grid">${POSTS.slice(1,4).map(card).join('')}</div>
+  <h2 class="sec">Explore by Category</h2><div class="filters">${CATS.map(c=>`<button class="chip" onclick="filt={region:'All',cat:'${c}'};location.hash='#/destinations'">${c}</button>`).join('')}</div>
+  <h2 class="sec">Where I've Been</h2>${mapHtml()}<p><a class="btn alt" href="#/map">Open full map</a></p>`;
+}
+function destinations(){
+  const list = POSTS.filter(p=>(filt.region==='All'||p.region===filt.region)&&(filt.cat==='All'||p.cat===filt.cat));
+  return `<h2 class="sec">Destinations</h2>
+  <div class="filters">${REGIONS.map(r=>`<button class="chip ${filt.region===r?'on':''}" onclick="setF('region','${r}')">${r}</button>`).join('')}</div>
+  <div class="filters">${['All',...CATS].map(c=>`<button class="chip ${filt.cat===c?'on':''}" onclick="setF('cat','${c}')">${c}</button>`).join('')}</div>
+  <div class="grid">${list.map(card).join('')||'<p>No articles match these filters yet.</p>'}</div>`;
+}
+function setF(k,v){ filt[k]=v; render(); }
+
+/* Interactive map (equirectangular SVG, no external libraries) */
+const LAND = [
+ [[-168,66],[-140,70],[-95,72],[-80,68],[-62,58],[-55,50],[-67,45],[-76,38],[-81,25],[-97,26],[-105,20],[-92,15],[-83,9],[-95,17],[-110,25],[-124,40],[-125,50],[-150,60]],
+ [[-55,60],[-20,70],[-25,82],[-60,80]],
+ [[-78,8],[-60,10],[-50,0],[-35,-6],[-40,-22],[-58,-38],[-68,-52],[-74,-45],[-71,-18],[-81,-5]],
+ [[-10,36],[-9,43],[0,50],[5,58],[20,70],[60,70],[100,77],[140,72],[180,68],[170,60],[140,52],[130,35],[122,30],[110,20],[105,10],[98,16],[90,22],[80,8],[72,20],[58,24],[48,30],[35,36],[28,41],[20,38],[12,38],[0,38]],
+ [[-17,21],[-6,36],[10,37],[32,31],[43,12],[51,12],[40,-5],[40,-15],[33,-26],[20,-35],[12,-18],[9,4],[-8,4],[-17,14]],
+ [[113,-22],[130,-12],[142,-11],[153,-26],[147,-38],[135,-35],[115,-34]],
+ [[167,-46],[174,-41],[178,-38],[172,-34],[168,-44]]
+];
+const X = lng => lng+180, Y = lat => 90-lat;
+function mapHtml(){
+  const land = LAND.map(poly=>`<polygon class="land" points="${poly.map(p=>X(p[0])+','+Y(p[1])).join(' ')}"/>`).join('');
+  const grid = [-60,-30,0,30,60].map(l=>`<line x1="0" x2="360" y1="${Y(l)}" y2="${Y(l)}" stroke="#fff" stroke-opacity=".25" stroke-width=".3"/>`).join('');
+  const pins = POSTS.map(p=>`<g class="pin" onclick="location.hash='#/post/${p.id}'" onmousemove="tip(event,'${p.place}: ${p.title.replace(/'/g,'')}')" onmouseleave="tip()"><circle class="p" cx="${X(p.lng)}" cy="${Y(p.lat)}" r="3"/><circle class="o" cx="${X(p.lng)}" cy="${Y(p.lat)}" r="2.6"/></g>`).join('');
+  return `<div class="map-wrap"><svg class="map" viewBox="0 0 360 180">${grid}${land}${pins}</svg><div id="tip"></div></div><p class="meta">Click a marker to read the article from that place.</p>`;
+}
+function tip(e,t){
+  const el=$('tip'); if(!el) return;
+  if(!t){ el.style.display='none'; return; }
+  const r = el.parentElement.getBoundingClientRect();
+  el.textContent=t; el.style.display='block';
+  el.style.left = Math.min(e.clientX-r.left+12, r.width-220)+'px'; el.style.top=(e.clientY-r.top+12)+'px';
+}
+const mapView = () => `<h2 class="sec">Interactive Travel Map</h2>${mapHtml()}<div class="grid" style="margin-top:20px">${POSTS.map(card).join('')}</div>`;
+
+/* Article */
+function post(id){
+  const p = P(id); if(!p) return '<p>Article not found.</p>';
+  gal = {id, i:0};
+  const url = encodeURIComponent(location.href), txt = encodeURIComponent(p.title);
+  return `<article>
+  <span class="tag">${p.region}</span><span class="tag o">${p.cat}</span>
+  <h1>${p.title}</h1><div class="meta">${p.date} · ${p.place}</div>
+  <figure style="margin:0"><img class="lead" src="${scene(id,2)}" alt="${esc(p.place)}"><figcaption>${p.place}, as I first saw it.</figcaption></figure>
+  <p>${p.body[0]}</p>
+  <h2>Photo Gallery</h2>
+  <div class="gal"><div class="main"><img id="gMain" onclick="openLb()" alt=""><button class="nav" style="left:0" onclick="gStep(-1)">&#8249;</button><button class="nav" style="right:0" onclick="gStep(1)">&#8250;</button></div>
+    <div class="cap" id="gCap" style="margin-top:6px"></div>
+    <div class="thumbs">${p.caps.map((c,i)=>`<img src="${scene(id,i)}" alt="${esc(c)}" onclick="gGo(${i})">`).join('')}</div>
+    <div class="row"><button class="btn alt" id="playBtn" onclick="slideshow()">▶ Play slideshow</button><button class="btn alt" onclick="openLb()">⤢ View larger</button></div></div>
+  <p>${p.body[1]}</p>
+  <h2>Travel Tips</h2><div class="tips"><ul>${p.tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>
+  <h2>Share this article</h2>
+  <div class="row">
+    <a class="btn" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=${url}">Facebook</a>
+    <a class="btn" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=${txt}&url=${url}">X / Twitter</a>
+    <a class="btn" target="_blank" rel="noopener" href="https://wa.me/?text=${txt}%20${url}">WhatsApp</a>
+    <button class="btn alt" onclick="copyLink()" id="cpy">Copy link</button></div>
+  <h2>Comments</h2>
+  <div class="form"><input id="cName" placeholder="Your name" maxlength="40"><textarea id="cText" rows="3" placeholder="Share your thoughts or ask a question..." maxlength="500"></textarea><button class="btn" onclick="addComment('${id}')">Post comment</button> <span id="cMsg" class="meta"></span></div>
+  <div id="cList"></div>
+  <h2>More from ${p.region}</h2><div class="grid">${POSTS.filter(x=>x.id!==id&&x.region===p.region).map(card).join('')||'<p class="meta">More stories from this region are coming soon.</p>'}</div>
+  </article>`;
+}
+function afterPost(){ gShow(); listComments(); }
+function gShow(){
+  const p=P(gal.id); if(!p||!$('gMain')) return;
+  $('gMain').src=scene(p.id,gal.i); $('gCap').textContent=p.caps[gal.i];
+  document.querySelectorAll('.thumbs img').forEach((im,i)=>im.classList.toggle('on',i===gal.i));
+}
+function gGo(i){ gal.i=i; gShow(); }
+function gStep(d){ const n=P(gal.id).caps.length; gal.i=(gal.i+d+n)%n; gShow(); if($('lb').classList.contains('show')) lbShow(); }
+function slideshow(){
+  const b=$('playBtn');
+  if(timer){ clearInterval(timer); timer=null; b.textContent='▶ Play slideshow'; return; }
+  timer=setInterval(()=>gStep(1),2500); b.textContent='⏸ Pause slideshow';
+}
+function openLb(){ $('lb').classList.add('show'); lbShow(); }
+function lbShow(){ const p=P(gal.id); $('lbImg').src=scene(p.id,gal.i); $('lbCap').textContent=p.caps[gal.i]+' ('+(gal.i+1)+'/'+p.caps.length+')'; }
+function lbStep(d){ gStep(d); lbShow(); }
+function closeLb(){ $('lb').classList.remove('show'); }
+document.addEventListener('keydown',e=>{ if(!$('lb').classList.contains('show')) return; if(e.key==='Escape') closeLb(); if(e.key==='ArrowRight') lbStep(1); if(e.key==='ArrowLeft') lbStep(-1); });
+function copyLink(){ const b=$('cpy'); try{ navigator.clipboard.writeText(location.href); b.textContent='Link copied!'; }catch(e){ b.textContent='Copy from address bar'; } }
+
+/* Comments (kept in the browser with localStorage) */
+const SEED = {kyoto:[{n:'Priya',t:'Beautiful write-up! Which tea house did you visit in Gion?'}]};
+function getCm(id){ try{ const s=localStorage.getItem('cm_'+id); if(s) return JSON.parse(s); }catch(e){} return SEED[id]?SEED[id].slice():[]; }
+function listComments(){
+  const c=getCm(gal.id);
+  $('cList').innerHTML = c.length ? c.map(x=>`<div class="cm"><b>${esc(x.n)}</b><div>${esc(x.t)}</div></div>`).join('') : '<p class="meta">Be the first to comment.</p>';
+}
+function addComment(id){
+  const n=$('cName').value.trim(), t=$('cText').value.trim();
+  if(!n||!t){ $('cMsg').textContent='Please enter your name and a comment.'; return; }
+  const c=getCm(id); c.push({n,t});
+  try{ localStorage.setItem('cm_'+id,JSON.stringify(c)); }catch(e){}
+  $('cName').value=''; $('cText').value=''; $('cMsg').textContent='Thanks for commenting!'; listComments();
+}
+
+/* About + Resources */
+const about = () => `<h2 class="sec">About the Traveler</h2>
+ <div class="two"><img alt="Portrait of the traveler" src="data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#1d3b4f"/><circle cx="100" cy="78" r="38" fill="#e0b48a"/><path d="M30 200c0-50 30-72 70-72s70 22 70 72z" fill="#e0662b"/><path d="M62 70c0-30 76-30 76 0-20-14-56-14-76 0z" fill="#2b1d14"/></svg>')}">
+ <div><h3>Hi, I'm Alex!</h3>
+ <p><b>Background:</b> I grew up in a small town, studied engineering, and took my first solo trip at 21. One backpack and a one-way ticket later, I was hooked.</p>
+ <p><b>Travel interests:</b> local food, hiking, cultural festivals, and slow travel that lets me meet people rather than tick off sights.</p>
+ <p><b>Why I blog:</b> I started Wanderlog to share honest stories and practical tips so that you can plan your own adventures with confidence.</p>
+ <p><b>Future plans:</b> overland through Central Asia, a month in Patagonia, and a photo book of the best moments.</p>
+ <p><a class="btn" href="#/destinations">Read my stories</a></p></div></div>`;
+const PACK = {Essentials:['Passport and visas','Travel insurance','Phone and charger','Universal adapter'],Clothing:['Light rain jacket','Comfortable walking shoes','Quick-dry layers','Hat and sunglasses'],Health:['First-aid kit','Reusable water bottle','Sunscreen','Personal medicines']};
+const resources = () => `<h2 class="sec">Resources</h2>
+ <h3>Interactive Packing List</h3><div class="grid">${Object.entries(PACK).map(([k,v])=>`<div class="card" style="cursor:default"><div class="in pack"><h3>${k}</h3>${v.map(i=>`<label><input type="checkbox">${i}</label>`).join('')}</div></div>`).join('')}</div>
+ <h3 style="margin-top:28px">Useful Travel Tools</h3><ul>
+  <li><a target="_blank" rel="noopener" href="https://www.google.com/maps">Google Maps</a> – download offline maps before you go.</li>
+  <li><a target="_blank" rel="noopener" href="https://www.xe.com">XE Currency</a> – live exchange rates.</li>
+  <li><a target="_blank" rel="noopener" href="https://www.rome2rio.com">Rome2rio</a> – compare trains, buses and flights.</li></ul>
+ <h3>Booking Recommendations</h3><ul>
+  <li><a target="_blank" rel="noopener" href="https://www.skyscanner.com">Skyscanner</a> – flexible flight search.</li>
+  <li><a target="_blank" rel="noopener" href="https://www.booking.com">Booking.com</a> – hotels and apartments.</li>
+  <li><a target="_blank" rel="noopener" href="https://www.hostelworld.com">Hostelworld</a> – budget stays.</li>
+  <li><a target="_blank" rel="noopener" href="https://www.getyourguide.com">GetYourGuide</a> – tours and activities.</li></ul>`;
+
+/* ---------- Router ---------- */
+function render(){
+  if(timer){ clearInterval(timer); timer=null; }
+  closeLb();
+  const h = (location.hash||'#/').replace('#/','').split('/');
+  const r = h[0]||'home';
+  const app = $('app');
+  if(r==='home') app.innerHTML=home();
+  else if(r==='destinations') app.innerHTML=destinations();
+  else if(r==='map') app.innerHTML=mapView();
+  else if(r==='about') app.innerHTML=about();
+  else if(r==='resources') app.innerHTML=resources();
+  else if(r==='post'){ app.innerHTML=post(h[1]); afterPost(); }
+  else app.innerHTML='<p>Page not found.</p>';
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on', a.dataset.r===(r==='post'?'destinations':r)));
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',render);
+render();
+</script>
+</body>
+</html>
