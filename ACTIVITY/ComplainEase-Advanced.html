@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ComplainEase Pro – Complaint Management Platform</title>
+<style>
+:root{--ink:#10302f;--bg:#f2f5f4;--card:#fff;--line:#cfdad8;--teal:#0f6b66;--amber:#d98a00;--red:#b3261e;--muted:#5a6f6d;--soft:#e3f0ee;font-family:"Trebuchet MS","Segoe UI",Helvetica,Arial,sans-serif}
+:root[data-theme=dark]{--ink:#e6efee;--bg:#0d1a1a;--card:#152524;--line:#2b4543;--teal:#4cc2ba;--muted:#9bb4b1;--soft:#1b3533;--amber:#f0b03a;--red:#ff7b72}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.5}
+header{background:#10302f;color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header h1{margin:0;font-size:1.35rem}header h1 small{font-weight:400;color:#9fc7c3;font-size:.8rem;margin-left:6px}
+header div{display:flex;gap:10px;align-items:center;color:#9fc7c3;font-size:.9rem}
+header button{background:transparent;border:1px solid #9fc7c3;color:#fff;border-radius:4px;padding:4px 10px;cursor:pointer;font:inherit}
+main{max-width:1040px;margin:0 auto;padding:16px 16px 60px}
+.hero{padding:26px 0 6px}.hero h2{font-size:clamp(1.6rem,4vw,2.5rem);margin:0 0 8px;max-width:20ch;line-height:1.15}.hero p{max-width:62ch;color:var(--muted);margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px;margin:12px 0}
+.tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:2px solid var(--line);margin-top:12px}
+.tabs button{background:none;border:0;padding:10px 13px;font:inherit;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs button.on{color:var(--teal);border-color:var(--teal);font-weight:700}
+label{display:block;font-weight:600;font-size:.88rem;margin:10px 0 3px}
+input,select,textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:4px;font:inherit;background:var(--card);color:var(--ink)}
+textarea{min-height:84px}
+.btn{background:var(--teal);color:#fff;border:0;padding:8px 15px;border-radius:4px;font:inherit;cursor:pointer;margin:10px 6px 0 0}
+:root[data-theme=dark] .btn{color:#0d1a1a}
+.btn.alt{background:transparent;color:var(--teal);border:1px solid var(--teal)}.btn.del{background:var(--red);color:#fff}
+:focus-visible{outline:3px solid var(--amber);outline-offset:1px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.row,.row3{grid-template-columns:1fr}}
+.msg{padding:10px 12px;border-left:4px solid var(--teal);background:var(--soft);margin:10px 0;border-radius:3px}.msg.err{border-color:var(--red)}
+.pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.78rem;font-weight:700;color:#fff;background:#6b7f7d;margin-right:4px}
+.s-Inreview{background:var(--amber);color:#222}.s-Inprogress{background:#2468a8}.s-Resolved{background:#2e7d32}.s-Rejected{background:var(--red)}.p-High{background:var(--red)}.p-Medium{background:var(--amber);color:#222}.p-Low{background:#2e7d32}
+.cid{font-weight:700;color:var(--teal)}.small{font-size:.85rem;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{text-align:left;padding:7px;border-bottom:1px solid var(--line);vertical-align:top}
+iframe{width:100%;height:230px;border:1px solid var(--line);border-radius:4px;margin-top:10px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.stats div{border:1px solid var(--line);padding:10px;border-radius:6px;background:var(--card)}.stats b{font-size:1.6rem;display:block}
+.bar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:.88rem}.bar span:first-child{width:130px}.bar i{display:block;height:14px;background:var(--teal);border-radius:3px;min-width:2px}
+.chk{display:flex;gap:8px;align-items:center;font-weight:400}.chk input{width:auto}
+.tl{border-left:3px solid var(--line);margin:8px 0 8px 6px;padding-left:12px}.tl div{font-size:.84rem;margin:4px 0;color:var(--muted)}.tl b{color:var(--ink)}
+.stars button{background:none;border:0;font-size:1.5rem;cursor:pointer;color:var(--amber);padding:0 2px}
+.toast{position:fixed;bottom:18px;right:18px;background:#10302f;color:#fff;padding:12px 16px;border-radius:6px;max-width:320px;box-shadow:0 4px 14px #0004;z-index:9}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.filters div{flex:1;min-width:150px}
+</style>
+</head>
+<body>
+<header><h1>ComplainEase<small>Pro</small></h1><div><span id="who">Register, track and resolve complaints</span><button onclick="theme()" aria-label="Toggle dark mode">Dark / Light</button></div></header>
+<main id="app"></main>
+<script>
+const KEY='complainease_pro_v1';
+const FEATS={user:{post:'Post complaint',map:'Location on Google Map',status:'View complaint status',feedback:'Feedback and rating',contact:'Admin contact details'},officer:{update:'Update status',proof:'Update proof of work'}};
+const ST=['Submitted','In review','In progress','Resolved','Rejected'],CATS=['Roads & potholes','Water supply','Electricity','Sanitation & garbage','Public safety','Other'];
+const SLA={High:2,Medium:5,Low:10};
+function fresh(){return{users:[],officers:[],complaints:[],notes:[],seq:1000,adminPw:'admin123',hidden:{user:[],officer:[]},info:{name:'ComplainEase Administrator',email:'admin@complainease.example',phone:'+91 44 0000 0000',hours:'Mon–Fri, 9:30 am – 5:30 pm',faq:'Street light not working: report with the pole number.\nGarbage not collected: add the street name and the date missed.\nWater leakage: attach a photo and mark the exact spot on the map.'}}}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||fresh()}catch(e){return fresh()}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+let db=load(),me=null,role='user',mode='login',tab='',note=null,draft={},toastT;
+const $=s=>document.querySelector(s),now=()=>new Date().toLocaleString();
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const v=id=>(($('#'+id)||{}).value||'').trim();
+const hid=(r,f)=>db.hidden[r].includes(f);
+const pill=s=>`<span class="pill s-${s.replace(' ','')}">${s}</span>`;
+const rnd=n=>Array.from({length:n},()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.random()*31|0]).join('');
+const nHtml=()=>{const n=note;note=null;return n?`<div class="msg ${n.err?'err':''}" role="status">${esc(n.m)}</div>`:''};
+const show=(m,err)=>{note={m,err};render()};
+function toast(m){clearTimeout(toastT);let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.className='toast';t.setAttribute('role','status');document.body.appendChild(t)}t.textContent=m;toastT=setTimeout(()=>t.remove(),4500)}
+function theme(){const r=document.documentElement,d=r.dataset.theme==='dark'?'light':'dark';r.dataset.theme=d;try{localStorage.setItem('ce_theme',d)}catch(e){}}
+try{document.documentElement.dataset.theme=localStorage.getItem('ce_theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}
+function notify(to,txt){db.notes.unshift({to,txt,t:now()});toast('Email/SMS sent to '+to+': '+txt)}
+function age(c){return Math.floor((Date.now()-c.ts)/864e5)}
+function overdue(c){return !['Resolved','Rejected'].includes(c.status)&&age(c)>SLA[c.priority]}
+
+/* ---- Demo data ---- */
+function demo(){
+ if(!db.users.some(u=>u.email==='demo@user.com'))db.users.push({name:'Priya Raman',email:'demo@user.com',phone:'9876543210',pw:'demo123'});
+ if(!db.officers.some(o=>o.id==='OFF101'))db.officers.push({id:'OFF101',pw:'off123',name:'R. Kumar',phone:'9123456780'});
+ if(!db.complaints.length)[['Roads & potholes','Large pothole near bus stop','High','In progress',4],['Sanitation & garbage','Garbage not collected for 3 days','Medium','Submitted',1],['Electricity','Street light off on 4th Cross','Low','Resolved',9]].forEach((d,i)=>{db.complaints.push({id:'CE-'+(++db.seq),uid:'demo@user.com',cat:d[0],title:d[1],desc:d[1]+'. Needs attention at the earliest.',files:[],addr:'Adyar, Chennai',lat:'13.0012',lng:'80.2565',priority:d[2],status:d[3],officer:d[3]==='Submitted'?'':'OFF101',proof:d[3]==='Resolved'?['Light replaced – photo.jpg']:[],extra:[],feedback:'',rating:0,ts:Date.now()-d[4]*864e5,hist:[{t:now(),txt:'Complaint submitted'},...(d[3]!=='Submitted'?[{t:now(),txt:'Status changed to '+d[3]}]:[])]})});
+ save();show('Demo data loaded. Citizen: demo@user.com / demo123. Officer: OFF101 / off123. Admin: admin / admin123.')}
+
+/* ---- Auth ---- */
+function setRole(r){role=r;mode='login';note=null;render()}
+function setMode(m){mode=m;note=null;render()}
+function login(){
+ const id=v('a_id'),pw=document.getElementById('a_pw').value;
+ if(role==='admin'){if(id==='admin'&&pw===db.adminPw){me={role,id:'admin'};tab='dash';return render()}return show('Wrong admin username or password.',1)}
+ if(role==='user'){const u=db.users.find(x=>x.email===id.toLowerCase()&&x.pw===pw);if(!u)return show('No citizen account matches that email and password.',1);me={role,id:u.email};tab='post'}
+ else{const o=db.officers.find(x=>x.id===id&&x.pw===pw);if(!o)return show('Officer ID or password is wrong. Ask the administrator for your credentials.',1);if(!o.name)return show('Complete officer registration first.',1);me={role,id:o.id};tab='list'}
+ note=null;render()}
+function register(){
+ if(role==='user'){const u={name:v('r_name'),email:v('r_email').toLowerCase(),phone:v('r_phone'),pw:v('r_pw')};
+  if(!u.name||!u.email.includes('@')||u.phone.length<8||u.pw.length<6)return show('Enter a name, a valid email, a phone number and a password of at least 6 characters.',1);
+  if(db.users.some(x=>x.email===u.email))return show('That email is already registered. Log in instead.',1);
+  db.users.push(u);save();mode='login';show('Account created. Log in with your email and password.')}
+ else{const o=db.officers.find(x=>x.id===v('r_id')&&x.pw===v('r_pw'));
+  if(!o)return show('Officer ID and password must match the ones the administrator generated.',1);
+  if(o.name)return show('This officer ID is already registered. Log in instead.',1);
+  if(!v('r_name'))return show('Enter your name.',1);
+  o.name=v('r_name');o.phone=v('r_phone');save();mode='login';show('Officer registration complete. Log in now.')}}
+function logout(){me=null;tab='';note=null;draft={};render()}
+
+/* ---- Navigation ---- */
+function tabsFor(){
+ if(me.role==='user')return[['post','Post complaint',!hid('user','post')],['mine','My complaints',!hid('user','status')],['alerts','Notifications (' +db.notes.filter(n=>n.to===me.id).length+')',1],['contact','Admin contact',!hid('user','contact')]].filter(t=>t[2]);
+ if(me.role==='officer')return[['list','Complaints',1],['alerts','Notifications',0]].filter(t=>t[2]);
+ return[['dash','Dashboard'],['all','All complaints'],['accounts','Accounts'],['create','Create officer'],['features','Feature control'],['info','Information'],['pw','Change password']]}
+function go(t){tab=t;note=null;render()}
+const nav=()=>`<div class="tabs">${tabsFor().map(t=>`<button class="${tab===t[0]?'on':''}" onclick="go('${t[0]}')">${t[1]}</button>`).join('')}<button style="margin-left:auto" onclick="logout()">Log out</button></div>`;
+
+/* ---- Auth view ---- */
+function authView(){
+ const reg=mode==='register'&&role!=='admin';let f;
+ if(!reg)f=`<label for="a_id">${role==='user'?'Email':role==='officer'?'Officer ID':'Admin username'}</label><input id="a_id" autocomplete="username"><label for="a_pw">Password</label><input id="a_pw" type="password" autocomplete="current-password"><button class="btn" onclick="login()">Log in</button><button class="btn alt" onclick="demo()">Load demo data</button>`;
+ else if(role==='user')f=`<div class="row"><div><label for="r_name">Full name</label><input id="r_name"></div><div><label for="r_phone">Phone (for SMS updates)</label><input id="r_phone" type="tel"></div><div><label for="r_email">Email</label><input id="r_email" type="email"></div><div><label for="r_pw">Password</label><input id="r_pw" type="password"></div></div><button class="btn" onclick="register()">Create account</button>`;
+ else f=`<p class="small">Enter the Officer ID and password generated by the administrator, then add your details.</p><div class="row"><div><label for="r_id">Officer ID</label><input id="r_id"></div><div><label for="r_pw">Password from admin</label><input id="r_pw"></div><div><label for="r_name">Full name</label><input id="r_name"></div><div><label for="r_phone">Phone</label><input id="r_phone" type="tel"></div></div><button class="btn" onclick="register()">Complete registration</button>`;
+ return `<section class="hero"><h2>Raise a complaint. Watch it get resolved.</h2><p>Submit an issue with a map pin and files, follow every status change on a timeline, and rate the resolution.</p></section>
+ <div class="tabs">${['user','officer','admin'].map(r=>`<button class="${role===r?'on':''}" onclick="setRole('${r}')">${{user:'Citizen',officer:'Officer',admin:'Administrator'}[r]}</button>`).join('')}</div>
+ <div class="card">${role!=='admin'?`<div class="tabs" style="margin:0 0 6px"><button class="${!reg?'on':''}" onclick="setMode('login')">Login</button><button class="${reg?'on':''}" onclick="setMode('register')">Register</button></div>`:''}${nHtml()}${f}</div>`}
+
+/* ---- Citizen ---- */
+function postView(){
+ const mapOn=!hid('user','map'),loc=draft.lat&&draft.lng;
+ return `<div class="card"><h3>Post a complaint</h3>${nHtml()}
+ <div class="row3"><div><label for="c_cat">Category</label><select id="c_cat">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></div><div><label for="c_pri">Priority</label><select id="c_pri"><option>Low</option><option selected>Medium</option><option>High</option></select></div><div><label for="c_title">Title</label><input id="c_title" placeholder="e.g. Pothole on Anna Salai"></div></div>
+ <label for="c_desc">Describe the problem</label><textarea id="c_desc"></textarea>
+ <label for="c_file">Supporting documents or photos</label><input id="c_file" type="file" multiple>
+ ${mapOn?`<label for="c_addr">Location / landmark</label><input id="c_addr" value="${esc(draft.addr||'')}"><div class="row"><div><label for="c_lat">Latitude</label><input id="c_lat" value="${esc(draft.lat||'')}"></div><div><label for="c_lng">Longitude</label><input id="c_lng" value="${esc(draft.lng||'')}"></div></div>
+ <button class="btn alt" onclick="geo()">Use my current location</button><button class="btn alt" onclick="pin()">Show on Google Map</button>${loc?`<iframe title="Google Map location" src="https://maps.google.com/maps?q=${encodeURIComponent(draft.lat+','+draft.lng)}&z=16&output=embed"></iframe>`:''}`:''}
+ <div><button class="btn" onclick="submitC()">Submit complaint</button></div></div>`}
+function keep(){['addr','lat','lng','cat','pri','title','desc'].forEach(k=>{if($('#c_'+k))draft[k]=v('c_'+k)})}
+function restore(){['cat','pri','title','desc'].forEach(k=>{if($('#c_'+k)&&draft[k])$('#c_'+k).value=draft[k]})}
+function pin(){keep();if(!draft.lat||!draft.lng||isNaN(+draft.lat)||isNaN(+draft.lng))return show('Enter valid latitude and longitude, or use your current location.',1);render();restore()}
+function geo(){keep();if(!navigator.geolocation)return show('This browser cannot share location. Enter coordinates manually.',1);navigator.geolocation.getCurrentPosition(p=>{draft.lat=p.coords.latitude.toFixed(6);draft.lng=p.coords.longitude.toFixed(6);render();restore()},()=>show('Location permission was denied. Enter coordinates manually.',1))}
+function submitC(){
+ keep();const files=[...$('#c_file').files].map(f=>f.name);
+ if(!draft.title||(draft.desc||'').length<10)return show('Add a title and a description of at least 10 characters.',1);
+ const c={id:'CE-'+(++db.seq),uid:me.id,cat:draft.cat,title:draft.title,desc:draft.desc,files,addr:draft.addr||'',lat:draft.lat||'',lng:draft.lng||'',priority:draft.pri||'Medium',status:'Submitted',officer:'',proof:[],extra:[],feedback:'',rating:0,ts:Date.now(),hist:[{t:now(),txt:'Complaint submitted'}]};
+ db.complaints.unshift(c);notify(me.id,`${c.id} registered. Expected resolution within ${SLA[c.priority]} days.`);save();draft={};tab='mine';show(`Complaint ${c.id} submitted.`)}
+function tl(c){return `<div class="tl">${c.hist.map(h=>`<div><b>${esc(h.txt)}</b> · ${esc(h.t)}</div>`).join('')}</div>`}
+function mineView(){
+ const list=db.complaints.filter(c=>c.uid===me.id);
+ return nHtml()+(list.length?list.map(c=>`<div class="card"><span class="cid">${c.id}</span> ${pill(c.status)}<span class="pill p-${c.priority}">${c.priority}</span>${overdue(c)?'<span class="pill s-Rejected">Overdue</span>':''}
+ <h3 style="margin:6px 0">${esc(c.title)}</h3><div class="small">${esc(c.cat)} · filed ${new Date(c.ts).toLocaleDateString()}${c.officer?' · handled by '+esc(c.officer):' · awaiting assignment'}</div><p>${esc(c.desc)}</p>
+ ${c.files.length?`<div class="small">Attachments: ${c.files.map(esc).join(', ')}</div>`:''}${c.lat?`<div class="small"><a target="_blank" rel="noopener" href="https://www.google.com/maps?q=${c.lat},${c.lng}">View location on Google Maps</a></div>`:''}
+ <b>Timeline</b>${tl(c)}${c.proof.length?`<p><b>Officer's proof of work</b><br>${c.proof.map(esc).join('<br>')}</p>`:''}${c.extra.length?`<p><b>Your added information</b><br>${c.extra.map(esc).join('<br>')}</p>`:''}
+ <label for="x_${c.id}">Add more information or evidence</label><input id="x_${c.id}"><button class="btn alt" onclick="addExtra('${c.id}')">Add information</button>
+ ${!hid('user','feedback')&&c.status==='Resolved'?(c.rating?`<p><b>Your rating:</b> ${'★'.repeat(c.rating)}${'☆'.repeat(5-c.rating)} ${esc(c.feedback)}</p>`:`<label>Rate the resolution</label><div class="stars">${[1,2,3,4,5].map(n=>`<button aria-label="${n} stars" onclick="draft.r_${c.id}=${n};this.parentNode.querySelectorAll('button').forEach((b,i)=>b.textContent=i<${n}?'★':'☆')">☆</button>`).join('')}</div><input id="f_${c.id}" placeholder="Comments (optional)"><button class="btn" onclick="sendFb('${c.id}')">Send feedback</button>`):''}</div>`).join(''):'<div class="card">You have not posted a complaint yet. Use Post complaint to start.</div>')}
+function addExtra(id){const t=v('x_'+id);if(!t)return show('Type the extra details first.',1);const c=db.complaints.find(x=>x.id===id);c.extra.push(t);c.hist.push({t:now(),txt:'Citizen added information'});save();show('Information added to '+id+'.')}
+function sendFb(id){const r=draft['r_'+id];if(!r)return show('Choose a star rating first.',1);const c=db.complaints.find(x=>x.id===id);c.rating=r;c.feedback=v('f_'+id);c.hist.push({t:now(),txt:'Feedback received ('+r+'/5)'});save();show('Thanks for your feedback on '+id+'.')}
+function alertsView(){const l=db.notes.filter(n=>n.to===me.id);return `<div class="card"><h3>Email and SMS log</h3><p class="small">Every status change sends a message. In this demo they are listed here instead of being sent.</p>${l.length?l.map(n=>`<p>${esc(n.txt)}<br><span class="small">${esc(n.t)}</span></p>`).join(''):'<p>No notifications yet.</p>'}</div>`}
+function contactView(){const i=db.info;return `<div class="card"><h3>Contact the administrator</h3><p><b>${esc(i.name)}</b><br>Email: ${esc(i.email)}<br>Phone: ${esc(i.phone)}<br>Hours: ${esc(i.hours)}</p><h3>Common issues and solutions</h3><label for="faq">Search common issues</label><input id="faq" oninput="faqF(this.value)"><div id="faqs">${i.faq.split('\n').map(l=>`<p class="fq">${esc(l)}</p>`).join('')}</div></div>`}
+function faqF(q){document.querySelectorAll('.fq').forEach(p=>p.style.display=p.textContent.toLowerCase().includes(q.toLowerCase())?'':'none')}
+
+/* ---- Officer ---- */
+function officerView(){
+ const q=(draft.q||'').toLowerCase(),sf=draft.sf||'',mine=draft.mine;
+ const list=db.complaints.filter(c=>(!q||(c.id+c.title+c.cat).toLowerCase().includes(q))&&(!sf||c.status===sf)&&(!mine||c.officer===me.id));
+ const mc=db.complaints.filter(c=>c.officer===me.id);
+ return nHtml()+`<div class="stats"><div><b>${mc.length}</b>Assigned to me</div><div><b>${mc.filter(c=>c.status==='Resolved').length}</b>Resolved</div><div><b>${mc.filter(overdue).length}</b>Overdue</div></div>
+ <div class="card filters"><div><label for="q">Search</label><input id="q" value="${esc(draft.q||'')}" oninput="draft.q=this.value;render();const e=$('#q');e.focus();e.setSelectionRange(99,99)"></div><div><label for="sf">Status</label><select id="sf" onchange="draft.sf=this.value;render()"><option value="">All</option>${ST.map(s=>`<option ${s===sf?'selected':''}>${s}</option>`).join('')}</select></div><label class="chk"><input type="checkbox" ${mine?'checked':''} onchange="draft.mine=this.checked;render()">Only mine</label></div>`+
+ (list.length?list.map(c=>`<div class="card"><span class="cid">${c.id}</span> ${pill(c.status)}<span class="pill p-${c.priority}">${c.priority}</span>${overdue(c)?'<span class="pill s-Rejected">Overdue</span>':''}<h3 style="margin:6px 0">${esc(c.title)}</h3>
+ <div class="small">${esc(c.cat)} · by ${esc(c.uid)} · ${new Date(c.ts).toLocaleDateString()} · officer: ${esc(c.officer||'unassigned')}</div><p>${esc(c.desc)}</p>
+ ${c.files.length?`<div class="small">Attachments: ${c.files.map(esc).join(', ')}</div>`:''}${c.addr||c.lat?`<div class="small">Location: ${esc(c.addr)} ${c.lat?`<a target="_blank" rel="noopener" href="https://www.google.com/maps?q=${c.lat},${c.lng}">Open in Google Maps</a>`:''}</div>`:''}
+ ${c.extra.length?`<p><b>Citizen's extra information</b><br>${c.extra.map(esc).join('<br>')}</p>`:''}${c.rating?`<p><b>Rating:</b> ${'★'.repeat(c.rating)} ${esc(c.feedback)}</p>`:''}
+ ${tl(c)}${c.proof.length?`<p><b>Proof of work</b><br>${c.proof.map(esc).join('<br>')}</p>`:''}
+ ${!hid('officer','update')?`<label for="s_${c.id}">Status</label><select id="s_${c.id}">${ST.map(s=>`<option ${s===c.status?'selected':''}>${s}</option>`).join('')}</select><button class="btn" onclick="setStatus('${c.id}')">Update status</button>`:''}
+ ${!hid('officer','proof')?`<label for="p_${c.id}">Proof of work</label><input id="p_${c.id}" placeholder="What was done?"><input id="pf_${c.id}" type="file" style="margin-top:6px"><button class="btn alt" onclick="addProof('${c.id}')">Update proof of work</button>`:''}</div>`).join(''):'<div class="card">No complaints match.</div>')}
+function setStatus(id){const c=db.complaints.find(x=>x.id===id),s=v('s_'+id);if(s===c.status)return show('Status is already '+s+'.',1);c.status=s;c.officer=c.officer||me.id;c.hist.push({t:now(),txt:'Status changed to '+s+' by '+me.id});notify(c.uid,`${id} is now "${s}".`);save();render()}
+function addProof(id){const t=v('p_'+id),f=($('#pf_'+id).files[0]||{}).name;if(!t&&!f)return show('Add a note or a file as proof.',1);const c=db.complaints.find(x=>x.id===id);c.proof.push(`${new Date().toLocaleDateString()} – ${t}${f?' ['+f+']':''}`);c.officer=c.officer||me.id;c.hist.push({t:now(),txt:'Proof of work added'});notify(c.uid,`Proof of work added to ${id}.`);save();render()}
+
+/* ---- Admin ---- */
+function by(key,vals){const m=Math.max(1,...vals.map(x=>db.complaints.filter(c=>c[key]===x).length));return vals.map(x=>{const n=db.complaints.filter(c=>c[key]===x).length;return `<div class="bar"><span>${esc(x)}</span><i style="width:${n/m*60}%"></i><span>${n}</span></div>`}).join('')}
+function adminView(){
+ const C=db.complaints;
+ if(tab==='dash'){const rated=C.filter(c=>c.rating);return nHtml()+`<div class="stats"><div><b>${C.length}</b>Complaints</div><div><b>${C.filter(c=>c.status==='Resolved').length}</b>Resolved</div><div><b>${C.filter(overdue).length}</b>Overdue</div><div><b>${C.filter(c=>!c.officer).length}</b>Unassigned</div><div><b>${rated.length?(rated.reduce((a,c)=>a+c.rating,0)/rated.length).toFixed(1):'–'}</b>Avg rating</div></div>
+ <div class="row"><div class="card"><h3>By status</h3>${by('status',ST)}</div><div class="card"><h3>By category</h3>${by('cat',CATS)}</div></div>`}
+ if(tab==='all')return nHtml()+`<div class="card"><button class="btn alt" style="margin:0 0 10px" onclick="csv()">Export CSV</button><div style="overflow-x:auto"><table><tr><th>ID</th><th>Title</th><th>Priority</th><th>Status</th><th>Officer</th><th>Assign</th></tr>${C.map(c=>`<tr><td>${c.id}</td><td>${esc(c.title)}${overdue(c)?' <span class="pill s-Rejected">Overdue</span>':''}</td><td>${c.priority}</td><td>${c.status}</td><td>${esc(c.officer||'–')}</td><td><select id="as_${c.id}" onchange="assign('${c.id}',this.value)"><option value="">Choose</option>${db.officers.filter(o=>o.name).map(o=>`<option value="${o.id}">${esc(o.name)} (${o.id})</option>`).join('')}</select></td></tr>`).join('')||'<tr><td colspan="6">No complaints yet.</td></tr>'}</table></div></div>`;
+ if(tab==='accounts')return nHtml()+`<div class="card"><h3>Citizen accounts</h3><div style="overflow-x:auto"><table><tr><th>Name</th><th>Email</th><th>Phone</th><th>New password</th><th></th></tr>${db.users.map((u,i)=>`<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.phone)}</td><td><input id="up${i}" placeholder="new password"></td><td><button class="btn alt" style="margin:0" onclick="chg('users',${i})">Change</button> <button class="btn del" style="margin:0" onclick="del('users',${i})">Delete</button></td></tr>`).join('')||'<tr><td colspan="5">No citizen accounts yet.</td></tr>'}</table></div></div>
+ <div class="card"><h3>Officer accounts</h3><div style="overflow-x:auto"><table><tr><th>ID</th><th>Name</th><th>Password</th><th>New password</th><th></th></tr>${db.officers.map((o,i)=>`<tr><td>${esc(o.id)}</td><td>${esc(o.name||'(not registered yet)')}</td><td>${esc(o.pw)}</td><td><input id="op${i}" placeholder="new password"></td><td><button class="btn alt" style="margin:0" onclick="chg('officers',${i})">Change</button> <button class="btn del" style="margin:0" onclick="del('officers',${i})">Delete</button></td></tr>`).join('')||'<tr><td colspan="5">No officers yet. Use Create officer.</td></tr>'}</table></div></div>`;
+ if(tab==='create')return `<div class="card"><h3>Generate officer ID and password</h3>${nHtml()}<p class="small">Give these credentials to the officer. They use them on Officer → Register.</p><button class="btn" onclick="genOfficer()">Generate officer login</button></div>`;
+ if(tab==='features')return `<div class="card"><h3>Show or hide features</h3>${nHtml()}<p class="small">Unchecked features disappear for that user type.</p>${['user','officer'].map(r=>`<h4>${r==='user'?'Citizen':'Officer'} features</h4>${Object.entries(FEATS[r]).map(([k,l])=>`<label class="chk"><input type="checkbox" ${hid(r,k)?'':'checked'} onchange="toggleF('${r}','${k}',this.checked)">${l}</label>`).join('')}`).join('')}</div>`;
+ if(tab==='info'){const i=db.info;return `<div class="card"><h3>Information shown to citizens</h3>${nHtml()}<label for="i_name">Contact name</label><input id="i_name" value="${esc(i.name)}"><div class="row"><div><label for="i_email">Email</label><input id="i_email" value="${esc(i.email)}"></div><div><label for="i_phone">Phone</label><input id="i_phone" value="${esc(i.phone)}"></div></div><label for="i_hours">Office hours</label><input id="i_hours" value="${esc(i.hours)}"><label for="i_faq">Common issues and solutions (one per line)</label><textarea id="i_faq">${esc(i.faq)}</textarea><button class="btn" onclick="saveInfo()">Save information</button></div>`}
+ return `<div class="card"><h3>Change admin password</h3>${nHtml()}<label for="n_pw">New password</label><input id="n_pw" type="password"><button class="btn" onclick="adminPw()">Change password</button></div>`}
+function assign(id,o){if(!o)return;const c=db.complaints.find(x=>x.id===id);c.officer=o;c.hist.push({t:now(),txt:'Assigned to '+o});notify(c.uid,`${id} assigned to officer ${o}.`);save();render()}
+function csv(){const r=[['ID','Citizen','Category','Title','Priority','Status','Officer','Rating'],...db.complaints.map(c=>[c.id,c.uid,c.cat,c.title,c.priority,c.status,c.officer,c.rating])].map(a=>a.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r],{type:'text/csv'}));a.download='complaints.csv';a.click()}
+function chg(t,i){const p=v((t==='users'?'up':'op')+i);if(p.length<6)return show('New password must be at least 6 characters.',1);db[t][i].pw=p;save();show('Password changed.')}
+function del(t,i){if(!confirm('Delete this account permanently?'))return;db[t].splice(i,1);save();show('Account deleted.')}
+function genOfficer(){const o={id:'OFF'+(100+Math.floor(Math.random()*900)),pw:rnd(8),name:'',phone:''};db.officers.push(o);save();show(`Officer created. ID: ${o.id}   Password: ${o.pw}`)}
+function toggleF(r,k,on){const h=db.hidden[r],i=h.indexOf(k);if(on&&i>-1)h.splice(i,1);if(!on&&i<0)h.push(k);save()}
+function saveInfo(){db.info={name:v('i_name'),email:v('i_email'),phone:v('i_phone'),hours:v('i_hours'),faq:$('#i_faq').value};save();show('Information saved.')}
+function adminPw(){const p=v('n_pw');if(p.length<6)return show('Use at least 6 characters.',1);db.adminPw=p;save();show('Admin password changed.')}
+
+/* ---- Render ---- */
+function render(){
+ $('#who').textContent=me?`${{user:'Citizen',officer:'Officer',admin:'Administrator'}[me.role]}: ${me.id}`:'Register, track and resolve complaints';
+ if(!me){$('#app').innerHTML=authView();return}
+ const t=tabsFor();if(!t.find(x=>x[0]===tab))tab=t[0][0];
+ let b;
+ if(me.role==='user')b=tab==='post'?postView():tab==='mine'?mineView():tab==='alerts'?alertsView():contactView();
+ else b=me.role==='officer'?officerView():adminView();
+ $('#app').innerHTML=nav()+b}
+render();
+</script>
+</body>
+</html>

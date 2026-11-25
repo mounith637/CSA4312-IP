@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReNewMarket – Admin Panel</title>
+<style>
+:root{--bg:#eef3ee;--card:#fff;--ink:#1d2b24;--muted:#5d6e64;--brand:#1f6b4a;--brand2:#e0a43a;--line:#d5dfd8;--danger:#b3372f}
+*{box-sizing:border-box}
+body{margin:0;font-family:Georgia,"Times New Roman",serif;background:var(--bg);color:var(--ink);line-height:1.5}
+h1,h2,h3,button,input,select,th,label,.tab,.badge{font-family:"Trebuchet MS",Verdana,sans-serif}
+header{background:var(--brand);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header h1{margin:0;font-size:1.5rem}
+header small{opacity:.85}
+.wrap{max-width:1000px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px;margin-bottom:18px}
+.intro p{margin:.3rem 0}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab{padding:9px 16px;border:1px solid var(--line);background:#fff;cursor:pointer;border-radius:4px;font-size:.95rem}
+.tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{background:#f3f7f4}
+.table-scroll{overflow-x:auto}
+input,select{padding:8px;border:1px solid var(--line);border-radius:4px;font-size:.92rem;margin:0 6px 8px 0}
+label{font-size:.85rem;color:var(--muted);display:block}
+button{padding:7px 13px;border:0;border-radius:4px;background:var(--brand);color:#fff;cursor:pointer;font-size:.88rem}
+button:focus-visible,.tab:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--brand2);outline-offset:1px}
+button.sec{background:#e7eee9;color:var(--ink)}
+button.del{background:var(--danger)}
+.badge{padding:2px 9px;border-radius:10px;font-size:.78rem;background:#e7eee9}
+.badge.Shipped{background:#fbe9c4}.badge.Received{background:#cfe9da}.badge.Pending{background:#e6e6e6}
+.row{display:flex;flex-wrap:wrap;align-items:flex-end}
+#login{max-width:380px;margin:60px auto}
+#msg{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 18px;border-radius:4px;display:none;font-family:Verdana,sans-serif;font-size:.85rem}
+.status{font-size:.85rem;color:var(--muted)}
+.hide{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ReNewMarket – Admin Panel</h1>
+  <small>Buy, sell and reuse pre-loved goods</small>
+</header>
+
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <section id="login" class="card">
+    <h2>Administrator login</h2>
+    <p class="status" id="net">Checking network connection…</p>
+    <label for="u">Account</label>
+    <input id="u" value="admin" autocomplete="username">
+    <label for="p">Password</label>
+    <input id="p" type="password" value="admin123" autocomplete="current-password">
+    <div><button onclick="login()">Log in</button></div>
+    <p class="status">Demo account: admin / admin123</p>
+  </section>
+
+  <!-- APP -->
+  <section id="app" class="hide">
+    <div class="card intro">
+      <h2>About ReNewMarket</h2>
+      <p>ReNewMarket is an online marketplace that connects buyers and sellers of second-hand goods: electronics, furniture, clothing and collectibles. Sellers create listings with descriptions, photos and prices; buyers search, filter, negotiate, pay securely and arrange pick-up or delivery. This admin panel manages the platform's data.</p>
+    </div>
+
+    <nav role="tablist">
+      <button class="tab active" data-t="users">User Management</button>
+      <button class="tab" data-t="cats">Category Management</button>
+      <button class="tab" data-t="items">Commodity Management</button>
+      <button class="tab" data-t="orders">Order Management</button>
+      <button class="tab sec" onclick="logout()" style="margin-left:auto">Log out</button>
+    </nav>
+
+    <!-- Users -->
+    <div class="card" id="users">
+      <h3>User Management</h3>
+      <div class="row">
+        <div><label>Account</label><input id="nu" placeholder="username"></div>
+        <div><label>Password</label><input id="np" placeholder="password"></div>
+        <div><label>Role</label><select id="nr"><option>Buyer</option><option>Seller</option></select></div>
+        <button onclick="addUser()">Set login account</button>
+      </div>
+      <div class="table-scroll"><table><thead><tr><th>ID</th><th>Account</th><th>Password</th><th>Role</th><th>Actions</th></tr></thead><tbody id="ub"></tbody></table></div>
+    </div>
+
+    <!-- Categories -->
+    <div class="card hide" id="cats">
+      <h3>Category Management</h3>
+      <div class="row">
+        <div><label>Category name</label><input id="cn" placeholder="e.g. Books"></div>
+        <div><label>Description</label><input id="cd" placeholder="Short description"></div>
+        <button onclick="addCat()">Add category</button>
+      </div>
+      <div class="table-scroll"><table><thead><tr><th>ID</th><th>Name</th><th>Description</th><th>Actions</th></tr></thead><tbody id="cb"></tbody></table></div>
+    </div>
+
+    <!-- Commodities -->
+    <div class="card hide" id="items">
+      <h3>Commodity Management</h3>
+      <div class="table-scroll"><table><thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Price (₹)</th><th>Seller</th><th>Actions</th></tr></thead><tbody id="ib"></tbody></table></div>
+    </div>
+
+    <!-- Orders -->
+    <div class="card hide" id="orders">
+      <h3>Order Management</h3>
+      <div class="table-scroll"><table><thead><tr><th>Order</th><th>Item</th><th>Buyer</th><th>Logistics status</th><th>Actions</th></tr></thead><tbody id="ob"></tbody></table></div>
+    </div>
+  </section>
+</div>
+<div id="msg" role="status"></div>
+
+<script>
+/* ---------- Sample data (kept in memory) ---------- */
+let users=[{id:1,name:"admin",pass:"admin123",role:"Admin"},{id:2,name:"meena",pass:"meena@1",role:"Seller"},{id:3,name:"arjun",pass:"arjun@1",role:"Buyer"}];
+let cats=[{id:1,name:"Electronics",desc:"Phones, laptops, gadgets"},{id:2,name:"Furniture",desc:"Chairs, tables, storage"},{id:3,name:"Clothing",desc:"Pre-loved apparel"},{id:4,name:"Collectibles",desc:"Coins, stamps, antiques"}];
+let items=[{id:1,name:"Used Laptop",cat:"Electronics",price:18500,seller:"meena"},{id:2,name:"Wooden Study Table",cat:"Furniture",price:3200,seller:"meena"},{id:3,name:"Denim Jacket",cat:"Clothing",price:650,seller:"meena"}];
+let orders=[{id:101,item:"Used Laptop",buyer:"arjun",status:"Pending"},{id:102,item:"Denim Jacket",buyer:"arjun",status:"Shipped"}];
+let nid=1000;
+
+const $=id=>document.getElementById(id);
+function toast(t){const m=$("msg");m.textContent=t;m.style.display="block";clearTimeout(m.t);m.t=setTimeout(()=>m.style.display="none",2200)}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+/* ---------- Login & network ---------- */
+function updNet(){$("net").textContent=navigator.onLine?"Network connection is working.":"No network connection."}
+window.addEventListener("online",updNet);window.addEventListener("offline",updNet);updNet();
+function login(){
+  if(!navigator.onLine){toast("Network connection is not working");return}
+  const u=users.find(x=>x.name===$("u").value.trim()&&x.pass===$("p").value&&x.role==="Admin");
+  if(!u){toast("Wrong account or password");return}
+  $("login").classList.add("hide");$("app").classList.remove("hide");render();toast("Login successful");
+}
+function logout(){$("app").classList.add("hide");$("login").classList.remove("hide")}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll(".tab[data-t]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tab[data-t]").forEach(x=>x.classList.toggle("active",x===b));
+  ["users","cats","items","orders"].forEach(id=>$(id).classList.toggle("hide",id!==b.dataset.t));
+});
+
+/* ---------- Users ---------- */
+function addUser(){
+  const n=$("nu").value.trim(),p=$("np").value.trim();
+  if(!n||!p){toast("Enter account and password");return}
+  if(users.some(x=>x.name===n)){toast("Account already exists");return}
+  users.push({id:++nid,name:n,pass:p,role:$("nr").value});$("nu").value=$("np").value="";render();toast("Account created");
+}
+function editUser(id){
+  const u=users.find(x=>x.id===id);
+  const n=prompt("Account name:",u.name);if(n===null)return;
+  const p=prompt("Password:",u.pass);if(p===null)return;
+  if(n.trim())u.name=n.trim();if(p.trim())u.pass=p.trim();render();toast("User updated");
+}
+function delUser(id){
+  const u=users.find(x=>x.id===id);
+  if(u.role==="Admin"){toast("The administrator cannot be deleted");return}
+  if(confirm("Delete user "+u.name+"?")){users=users.filter(x=>x.id!==id);render();toast("User deleted")}
+}
+
+/* ---------- Categories ---------- */
+function addCat(){
+  const n=$("cn").value.trim();if(!n){toast("Enter a category name");return}
+  cats.push({id:++nid,name:n,desc:$("cd").value.trim()});$("cn").value=$("cd").value="";render();toast("Category added");
+}
+function delCat(id){
+  const c=cats.find(x=>x.id===id);
+  if(items.some(i=>i.cat===c.name)){toast("Remove its commodities first");return}
+  if(confirm("Delete category "+c.name+"?")){cats=cats.filter(x=>x.id!==id);render();toast("Category deleted")}
+}
+
+/* ---------- Commodities ---------- */
+function editItem(id){
+  const i=items.find(x=>x.id===id);
+  const n=prompt("Commodity name:",i.name);if(n===null)return;
+  const p=prompt("Price (₹):",i.price);if(p===null)return;
+  if(n.trim())i.name=n.trim();
+  if(p.trim()&&!isNaN(p))i.price=Number(p);
+  render();toast("Commodity updated");
+}
+function delItem(id){
+  const i=items.find(x=>x.id===id);
+  if(confirm("Delete "+i.name+"?")){items=items.filter(x=>x.id!==id);render();toast("Commodity deleted")}
+}
+
+/* ---------- Orders ---------- */
+function setStatus(id,s){orders.find(x=>x.id===id).status=s;render();toast("Order marked "+s)}
+function delOrder(id){if(confirm("Delete order #"+id+"?")){orders=orders.filter(x=>x.id!==id);render();toast("Order deleted")}}
+
+/* ---------- Render ---------- */
+function render(){
+  $("ub").innerHTML=users.map(u=>`<tr><td>${u.id}</td><td>${esc(u.name)}</td><td>${esc(u.pass)}</td><td>${u.role}</td><td><button class="sec" onclick="editUser(${u.id})">Edit</button> <button class="del" onclick="delUser(${u.id})">Delete</button></td></tr>`).join("");
+  $("cb").innerHTML=cats.map(c=>`<tr><td>${c.id}</td><td>${esc(c.name)}</td><td>${esc(c.desc)}</td><td><button class="del" onclick="delCat(${c.id})">Delete</button></td></tr>`).join("")||`<tr><td colspan="4">No categories yet. Add one above.</td></tr>`;
+  $("ib").innerHTML=items.map(i=>`<tr><td>${i.id}</td><td>${esc(i.name)}</td><td>${esc(i.cat)}</td><td>${i.price.toLocaleString("en-IN")}</td><td>${esc(i.seller)}</td><td><button class="sec" onclick="editItem(${i.id})">Edit</button> <button class="del" onclick="delItem(${i.id})">Delete</button></td></tr>`).join("")||`<tr><td colspan="6">No commodities listed.</td></tr>`;
+  $("ob").innerHTML=orders.map(o=>`<tr><td>#${o.id}</td><td>${esc(o.item)}</td><td>${esc(o.buyer)}</td><td><span class="badge ${o.status}">${o.status}</span></td><td><button class="sec" onclick="setStatus(${o.id},'Shipped')">Shipped</button> <button class="sec" onclick="setStatus(${o.id},'Received')">Received</button> <button class="del" onclick="delOrder(${o.id})">Delete</button></td></tr>`).join("")||`<tr><td colspan="5">No orders.</td></tr>`;
+}
+</script>
+</body>
+</html>

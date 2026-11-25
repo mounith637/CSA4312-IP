@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MedCare Hospital – Online Appointment Booking</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3f7fa;--card:#fff;--tx:#17262f;--mut:#5d7280;--pri:#0e8a7d;--pri2:#0a6a60;--bd:#d9e4ea;--bad:#c0392b;--ok:#1e8e4e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f1a20;--card:#18262e;--tx:#e6eef2;--mut:#93a8b4;--pri:#2ec4b0;--pri2:#5fe0cf;--bd:#2a3d48;--bad:#ff7b6b;--ok:#4fd48a}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0f1a20;--card:#18262e;--tx:#e6eef2;--mut:#93a8b4;--pri:#2ec4b0;--pri2:#5fe0cf;--bd:#2a3d48;--bad:#ff7b6b;--ok:#4fd48a}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--pri);color:#fff;padding:12px 18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+header h1{margin:0;font-size:20px}header nav{display:flex;flex-wrap:wrap;gap:6px}
+header button{background:rgba(255,255,255,.18);color:#fff;border:0;padding:7px 12px;border-radius:8px;cursor:pointer;font:inherit}
+header button.on,header button:hover{background:#fff;color:#0a6a60}
+main{max-width:1000px;margin:0 auto;padding:18px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+h2{margin:0 0 12px;font-size:19px}h3{margin:0 0 6px;font-size:16px}
+.mut{color:var(--mut);font-size:13px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;margin:3px 0 10px}
+label{font-size:13px;color:var(--mut)}
+.btn{background:var(--pri);color:#fff;border:0;padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit;text-decoration:none;display:inline-block;margin:2px 4px 2px 0}
+.btn:hover{background:var(--pri2)}.btn.s{background:transparent;color:var(--pri);border:1px solid var(--pri)}.btn.d{background:var(--bad)}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:150px}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;background:var(--bd)}
+.Booked{color:#b7791f}.Confirmed,.Completed{color:var(--ok)}.Cancelled,.Rejected{color:var(--bad)}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);font-size:14px;white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.stat{text-align:center}.stat b{font-size:28px;color:var(--pri);display:block}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:14px;z-index:20}
+#modal>div{background:var(--card);border-radius:14px;padding:18px;max-width:560px;width:100%;max-height:90vh;overflow:auto}
+#toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#17262f;color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:30;max-width:90%}
+.slots{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.slot{padding:6px 10px;border:1px solid var(--pri);border-radius:8px;cursor:pointer;color:var(--pri)}.slot.sel{background:var(--pri);color:#fff}.slot.x{opacity:.35;pointer-events:none;text-decoration:line-through}
+
+.cover{background:var(--card);border-bottom:3px solid var(--pri);padding:18px 6%}
+.cover h2{margin:0;color:var(--pri);font-size:22px}.cover .meta{display:flex;flex-wrap:wrap;gap:6px 24px;margin:8px 0;font-size:14px}
+.cover details{margin-top:6px}.cover summary{cursor:pointer;color:var(--pri);font-weight:600}
+.cover ul{columns:2;margin:6px 0;padding-left:18px;font-size:14px}.cover p{margin:6px 0;font-size:14px}
+footer.f{text-align:center;padding:14px;color:var(--mut);font-size:13px;border-top:1px solid var(--bd)}
+@media print{header,#toast{display:none}}
+</style></head><body>
+<header><h1>🏥 MedCare Hospital</h1><nav id="nav"></nav></header>
+<section class="cover">
+<h2>Online Appointment Booking System for MedCare Hospital</h2>
+<div class="meta"><span><b>Name:</b> K. Mounith</span><span><b>Reg. No:</b> 192425090</span><span><b>Course:</b> Mobile Computing (ITA03)</span><span><b>Institution:</b> SIMATS Engineering, Saveetha School of Engineering</span><span><b>Faculty Guide:</b> Dr. Ajitha Rajagopal</span></div>
+<details open><summary>Aim and Abstract</summary>
+<p><b>Aim:</b> To design a web-based system that lets patients search hospitals, book and manage doctor appointments, and lets hospitals and admins manage doctors, appointments and ratings.</p>
+<p><b>Abstract:</b> The system reduces waiting time and paperwork by moving appointment booking online. It has three roles: User/Patient, Hospital and Admin. Patients register, search by location or specialty, view the hospital list and Google Map, book a slot, submit a check-in form, track status and review doctors. Hospitals register, create and update their details and location, and manage doctors and appointments. Admins view statistics, manage appointments and doctors, and see rating details. Built with HTML, CSS and JavaScript; data is stored in the browser (localStorage).</p></details>
+<details><summary>Modules</summary><ul><li><b>User:</b> registration, login, location-wise search, hospital list, book appointment, view status, Google Map</li><li><b>Hospital:</b> registration, login, create details, update details, update location</li><li><b>Admin:</b> manage appointments, manage doctors, appointment statistics, rating details</li><li><b>Patient:</b> choose date and time, search by specialty and location, reviews, past check-in and appointment history</li></ul>
+<p><b>Demo logins:</b> Patient patient@demo.com / 1234 · Hospital city@medcare.com / 1234 · Admin admin@medcare.com / admin123</p></details>
+</section>
+<main id="app"></main>
+<footer class="f">Assignment work · K. Mounith (192425090) · SIMATS Engineering · HTML, CSS &amp; JavaScript</footer>
+<div id="modal"><div id="mbox"></div></div><div id="toast"></div>
+<script>
+const K='medcare_v1';let mem=null;
+const seed=()=>({users:[{id:'u1',name:'Demo Patient',email:'patient@demo.com',pass:'1234',phone:'9876543210'}],
+hospitals:[
+{id:'h1',name:'City Care Hospital',email:'city@medcare.com',pass:'1234',location:'Anantapur',address:'Clock Tower Road, Anantapur',phone:'08554-220011',about:'Multi-specialty hospital with 24x7 emergency.',doctors:[{id:'d1',name:'Dr. Ravi Kumar',spec:'Cardiology'},{id:'d2',name:'Dr. Anita Rao',spec:'Dermatology'}]},
+{id:'h2',name:'Sri Sai Clinic',email:'sai@medcare.com',pass:'1234',location:'Bengaluru',address:'MG Road, Bengaluru',phone:'080-4455667',about:'Family and child care clinic.',doctors:[{id:'d3',name:'Dr. Meena Iyer',spec:'Pediatrics'},{id:'d4',name:'Dr. Arjun Das',spec:'Orthopedics'}]},
+{id:'h3',name:'Lotus Medical Centre',email:'lotus@medcare.com',pass:'1234',location:'Chennai',address:'Anna Salai, Chennai',phone:'044-2233445',about:'Advanced diagnostics and surgery.',doctors:[{id:'d5',name:'Dr. Sana Khan',spec:'Neurology'},{id:'d6',name:'Dr. Vijay Nair',spec:'General Medicine'}]}],
+appts:[],reviews:[]});
+let db;try{db=JSON.parse(localStorage.getItem(K))}catch(e){}if(!db)db=seed();
+let S={view:'home',user:null,q:'',sp:''};
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}};
+const $=id=>document.getElementById(id),uid=p=>p+Math.random().toString(36).slice(2,8);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const toast=m=>{const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3500)};
+const modal=h=>{$('mbox').innerHTML=h;$('modal').style.display='flex'};const close=()=>$('modal').style.display='none';
+$('modal').onclick=e=>{if(e.target.id=='modal')close()};
+const go=v=>{S.view=v;render()};
+const role=()=>S.user?.role||'guest';
+const avg=a=>a.length?(a.reduce((x,y)=>x+y.rating,0)/a.length).toFixed(1)+' ★':'No ratings';
+const mapLink=h=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(h.name+' '+h.address);
+const specs=()=>[...new Set(db.hospitals.flatMap(h=>h.doctors.map(d=>d.spec)))].sort();
+function nav(){const r=role();const m={guest:[['home','Search'],['login','Login'],['register','Register']],
+patient:[['home','Hospitals'],['mine','My Appointments'],['profile','Profile']],
+hospital:[['hdash','Hospital Details'],['hdocs','Doctors'],['happ','Appointments']],
+admin:[['astats','Statistics'],['aapp','Appointments'],['adocs','Doctors'],['arate','Ratings']]}[r];
+$('nav').innerHTML=m.map(([v,l])=>`<button class="${S.view==v?'on':''}" onclick="go('${v}')">${l}</button>`).join('')+(S.user?`<button onclick="logout()">Logout (${esc(S.user.name.split(' ')[0])})</button>`:'')+
+`<button onclick="theme()" title="Toggle theme">◐</button>`}
+function theme(){const d=document.documentElement,dark=getComputedStyle(d).getPropertyValue('--bg').trim()=='#0f1a20';d.dataset.theme=dark?'light':'dark'}
+function logout(){S.user=null;go('home')}
+function login(e){e.preventDefault();const em=$('le').value.trim().toLowerCase(),p=$('lp').value,r=$('lr').value;let u;
+if(r=='admin'&&em=='admin@medcare.com'&&p=='admin123')u={role:'admin',name:'Admin',id:'admin'};
+else if(r=='patient'){const x=db.users.find(x=>x.email==em&&x.pass==p);if(x)u={role:'patient',name:x.name,id:x.id}}
+else if(r=='hospital'){const x=db.hospitals.find(x=>x.email==em&&x.pass==p);if(x)u={role:'hospital',name:x.name,id:x.id}}
+if(!u)return toast('Invalid login details');S.user=u;toast('Welcome, '+u.name);go(u.role=='patient'?'home':u.role=='hospital'?'hdash':'astats')}
+function register(e){e.preventDefault();const r=$('rr').value,n=$('rn').value.trim(),em=$('re').value.trim().toLowerCase(),p=$('rp').value;
+if(db.users.some(x=>x.email==em)||db.hospitals.some(x=>x.email==em))return toast('Email already registered');
+if(r=='patient')db.users.push({id:uid('u'),name:n,email:em,pass:p,phone:$('rph').value});
+else db.hospitals.push({id:uid('h'),name:n,email:em,pass:p,location:$('rl').value.trim(),address:'',phone:$('rph').value,about:'',doctors:[]});
+save();toast('Registered! Please login.');go('login')}
+function tgl(){const h=$('rr').value=='hospital';$('rlw').style.display=h?'block':'none';$('rnl').textContent=h?'Hospital name':'Full name'}
+function view(){const r=role(),v=S.view;
+if(v=='login')return `<div class="card" style="max-width:420px;margin:auto"><h2>Login</h2><form onsubmit="login(event)"><label>Login as</label><select id="lr"><option value="patient">Patient / User</option><option value="hospital">Hospital</option><option value="admin">Admin</option></select><label>Email</label><input id="le" required><label>Password</label><input id="lp" type="password" required><button class="btn">Login</button></form><p class="mut">Demo: patient@demo.com / 1234 · city@medcare.com / 1234 (hospital) · admin@medcare.com / admin123</p></div>`;
+if(v=='register')return `<div class="card" style="max-width:420px;margin:auto"><h2>Registration</h2><form onsubmit="register(event)"><label>Register as</label><select id="rr" onchange="tgl()"><option value="patient">Patient / User</option><option value="hospital">Hospital</option></select><label id="rnl">Full name</label><input id="rn" required><div id="rlw" style="display:none"><label>Location (city)</label><input id="rl"></div><label>Phone</label><input id="rph" required><label>Email</label><input id="re" type="email" required><label>Password</label><input id="rp" type="password" minlength="4" required><button class="btn">Sign up</button></form></div>`;
+if(v=='home'){const q=S.q.toLowerCase();const list=db.hospitals.filter(h=>(!q||(h.name+h.location+h.address).toLowerCase().includes(q)||h.doctors.some(d=>d.name.toLowerCase().includes(q)))&&(!S.sp||h.doctors.some(d=>d.spec==S.sp)));
+return `<div class="card"><h2>Find a hospital or doctor</h2><div class="row"><div><label>Location / hospital / doctor</label><input id="sq" value="${esc(S.q)}" placeholder="e.g. Chennai" oninput="S.q=this.value;list()"></div><div><label>Specialty</label><select id="ssp" onchange="S.sp=this.value;render()"><option value="">All specialties</option>${specs().map(s=>`<option ${S.sp==s?'selected':''}>${s}</option>`).join('')}</select></div></div></div><div class="grid" id="hl">${hcards(list)}</div>`}
+if(v=='mine'){const a=db.appts.filter(x=>x.pid==S.user.id).sort((x,y)=>(y.date+y.time).localeCompare(x.date+x.time));
+const up=a.filter(x=>x.date>=today()&&!['Cancelled','Rejected','Completed'].includes(x.status)),past=a.filter(x=>!up.includes(x));
+return `<div class="card"><h2>Upcoming appointments</h2>${tbl(up,'p')}</div><div class="card"><h2>Past appointment history</h2>${tbl(past,'p')}</div>`}
+if(v=='profile'){const u=db.users.find(x=>x.id==S.user.id);return `<div class="card" style="max-width:460px"><h2>My details</h2><form onsubmit="upProfile(event)"><label>Name</label><input id="pn" value="${esc(u.name)}" required><label>Phone</label><input id="pp" value="${esc(u.phone)}"><label>Email</label><input value="${esc(u.email)}" disabled><label>New password (optional)</label><input id="pw" type="password"><button class="btn">Update</button></form></div>`}
+if(v=='hdash'){const h=db.hospitals.find(x=>x.id==S.user.id);return `<div class="card" style="max-width:560px"><h2>Hospital details</h2><form onsubmit="upHosp(event)"><label>Name</label><input id="hn" value="${esc(h.name)}" required><div class="row"><div><label>Location (city)</label><input id="hl2" value="${esc(h.location)}" required></div><div><label>Phone</label><input id="hp" value="${esc(h.phone)}"></div></div><label>Full address (used for Google Map)</label><input id="ha" value="${esc(h.address)}"><label>About</label><textarea id="hab" rows="3">${esc(h.about)}</textarea><button class="btn">Save details &amp; location</button> <a class="btn s" target="_blank" rel="noopener" href="${mapLink(h)}">📍 Preview on map</a></form></div>`}
+if(v=='hdocs'){const h=db.hospitals.find(x=>x.id==S.user.id);return `<div class="card"><h2>Doctors</h2><form class="row" onsubmit="addDoc(event,'${h.id}')"><input id="dn" placeholder="Doctor name" required><input id="ds" placeholder="Specialty" required><button class="btn">Add doctor</button></form><div class="scroll"><table><tr><th>Name</th><th>Specialty</th><th>Rating</th><th></th></tr>${h.doctors.map(d=>`<tr><td>${esc(d.name)}</td><td>${esc(d.spec)}</td><td>${avg(db.reviews.filter(r=>r.did==d.id))}</td><td><button class="btn d" onclick="delDoc('${h.id}','${d.id}')">Remove</button></td></tr>`).join('')}</table></div></div>`}
+if(v=='happ')return `<div class="card"><h2>Appointments</h2>${tbl(db.appts.filter(x=>x.hid==S.user.id),'h')}</div>`;
+if(v=='astats'){const a=db.appts,c=s=>a.filter(x=>x.status==s).length;return `<div class="stats">${[['Hospitals',db.hospitals.length],['Doctors',db.hospitals.reduce((n,h)=>n+h.doctors.length,0)],['Patients',db.users.length],['Appointments',a.length],['Booked',c('Booked')],['Confirmed',c('Confirmed')],['Completed',c('Completed')],['Cancelled',c('Cancelled')+c('Rejected')]].map(([l,n])=>`<div class="card stat"><b>${n}</b>${l}</div>`).join('')}</div><div class="card"><h2>Appointments per hospital</h2>${db.hospitals.map(h=>{const n=a.filter(x=>x.hid==h.id).length;return `<div class="mut">${esc(h.name)} (${n})</div><div style="background:var(--pri);height:10px;border-radius:5px;width:${Math.max(2,n/Math.max(1,a.length)*100)}%;margin-bottom:8px"></div>`}).join('')}</div>`}
+if(v=='aapp')return `<div class="card"><h2>Manage appointments</h2>${tbl(db.appts,'a')}</div>`;
+if(v=='adocs')return `<div class="card"><h2>Manage doctors</h2><div class="scroll"><table><tr><th>Doctor</th><th>Specialty</th><th>Hospital</th><th></th></tr>${db.hospitals.flatMap(h=>h.doctors.map(d=>`<tr><td>${esc(d.name)}</td><td>${esc(d.spec)}</td><td>${esc(h.name)}</td><td><button class="btn d" onclick="delDoc('${h.id}','${d.id}')">Remove</button></td></tr>`)).join('')}</table></div></div>`;
+if(v=='arate')return `<div class="card"><h2>Rating details</h2>${db.reviews.length?`<div class="scroll"><table><tr><th>Patient</th><th>Doctor</th><th>Hospital</th><th>Rating</th><th>Review</th></tr>${db.reviews.map(r=>`<tr><td>${esc(r.pname)}</td><td>${esc(r.dname)}</td><td>${esc(r.hname)}</td><td>${'★'.repeat(r.rating)}</td><td style="white-space:normal">${esc(r.text)}</td></tr>`).join('')}</table></div>`:'<p class="mut">No reviews yet.</p>'}</div>`;
+return ''}
+function hcards(l){return l.length?l.map(h=>`<div class="card"><h3>${esc(h.name)}</h3><div class="mut">📍 ${esc(h.location)} · ${avg(db.reviews.filter(r=>r.hid==h.id))}</div><p>${esc(h.about)}</p><div>${h.doctors.map(d=>`<span class="tag">${esc(d.spec)}</span> `).join('')}</div><p><button class="btn" onclick="hosp('${h.id}')">View &amp; book</button><a class="btn s" target="_blank" rel="noopener" href="${mapLink(h)}">Google Map</a></p></div>`).join(''):'<p class="mut">No hospitals found.</p>'}
+function list(){const q=S.q.toLowerCase();$('hl').innerHTML=hcards(db.hospitals.filter(h=>(!q||(h.name+h.location+h.address).toLowerCase().includes(q)||h.doctors.some(d=>d.name.toLowerCase().includes(q)))&&(!S.sp||h.doctors.some(d=>d.spec==S.sp))))}
+function tbl(a,m){if(!a.length)return '<p class="mut">Nothing here yet.</p>';
+return `<div class="scroll"><table><tr><th>Date</th><th>Time</th><th>${m=='p'?'Hospital':'Patient'}</th><th>Doctor</th><th>Status</th><th>Actions</th></tr>${a.map(x=>{let b='';
+if(m=='p'){if(['Booked','Confirmed'].includes(x.status)&&x.date>=today())b+=`<button class="btn d" onclick="setSt('${x.id}','Cancelled')">Cancel</button>`;
+if(!x.checkin&&['Booked','Confirmed'].includes(x.status))b+=`<button class="btn s" onclick="checkin('${x.id}')">Check-in</button>`;
+if(x.checkin)b+=`<button class="btn s" onclick="showCI('${x.id}')">Check-in details</button>`;
+if(x.status=='Completed')b+=`<button class="btn" onclick="review('${x.id}')">Review</button>`}
+else{if(x.status=='Booked')b+=`<button class="btn" onclick="setSt('${x.id}','Confirmed')">Confirm</button><button class="btn d" onclick="setSt('${x.id}','Rejected')">Reject</button>`;
+if(x.status=='Confirmed')b+=`<button class="btn" onclick="setSt('${x.id}','Completed')">Complete</button>`;
+if(x.checkin)b+=`<button class="btn s" onclick="showCI('${x.id}')">Check-in</button>`;
+if(m=='a')b+=`<button class="btn d" onclick="delApp('${x.id}')">Delete</button>`}
+return `<tr><td>${x.date}</td><td>${x.time}</td><td>${esc(m=='p'?x.hname:x.pname)}${m=='a'?' @ '+esc(x.hname):''}</td><td>${esc(x.dname)}</td><td class="${x.status}"><b>${x.status}</b></td><td>${b}</td></tr>`}).join('')}</table></div>`}
+function hosp(id){const h=db.hospitals.find(x=>x.id==id);const rv=db.reviews.filter(r=>r.hid==id);
+modal(`<h2>${esc(h.name)}</h2><p class="mut">📍 ${esc(h.address||h.location)} · ☎ ${esc(h.phone)}<br><a target="_blank" rel="noopener" href="${mapLink(h)}">Open in Google Maps ↗</a></p><p>${esc(h.about)}</p>
+<h3>Doctors</h3>${h.doctors.length?h.doctors.map(d=>`<div class="card"><b>${esc(d.name)}</b> <span class="tag">${esc(d.spec)}</span> <span class="mut">${avg(db.reviews.filter(r=>r.did==d.id))}</span><br><button class="btn" onclick="book('${h.id}','${d.id}')">Book appointment</button></div>`).join(''):'<p class="mut">No doctors added yet.</p>'}
+<h3>Patient reviews</h3>${rv.length?rv.map(r=>`<p><b>${'★'.repeat(r.rating)}</b> ${esc(r.text)} <span class="mut">– ${esc(r.pname)} on ${esc(r.dname)}</span></p>`).join(''):'<p class="mut">No reviews yet.</p>'}<button class="btn s" onclick="close()">Close</button>`)}
+let B={};
+function book(hid,did){if(role()!='patient'){close();toast('Please login as patient to book');return go('login')}
+B={hid,did,date:today(),time:''};const h=db.hospitals.find(x=>x.id==hid),d=h.doctors.find(x=>x.id==did);
+modal(`<h2>Book with ${esc(d.name)}</h2><p class="mut">${esc(h.name)} · ${esc(d.spec)}</p><label>Choose date</label><input type="date" id="bd" min="${today()}" value="${B.date}" onchange="B.date=this.value;B.time='';slots()"><label>Choose time</label><div class="slots" id="sl"></div><label>Reason for visit</label><input id="br"><button class="btn" onclick="confirmBook()">Confirm booking</button><button class="btn s" onclick="close()">Cancel</button>`);slots()}
+function slots(){const taken=db.appts.filter(a=>a.did==B.did&&a.date==B.date&&!['Cancelled','Rejected'].includes(a.status)).map(a=>a.time);
+$('sl').innerHTML=['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00'].map(t=>`<div class="slot ${taken.includes(t)?'x':''} ${B.time==t?'sel':''}" onclick="B.time='${t}';slots()">${t}</div>`).join('')}
+function confirmBook(){if(!B.time||!B.date||B.date<today())return toast('Select a valid date and time');
+const h=db.hospitals.find(x=>x.id==B.hid),d=h.doctors.find(x=>x.id==B.did),u=db.users.find(x=>x.id==S.user.id);
+db.appts.push({id:uid('a'),pid:u.id,pname:u.name,hid:h.id,hname:h.name,did:d.id,dname:d.name,spec:d.spec,date:B.date,time:B.time,reason:$('br').value,status:'Booked',checkin:null});save();close();
+toast(`Booked! Reminder sent to ${u.email} and SMS to ${u.phone||'your phone'}`);go('mine')}
+function setSt(id,s){const a=db.appts.find(x=>x.id==id);a.status=s;save();toast('Appointment '+s.toLowerCase());render()}
+function delApp(id){db.appts=db.appts.filter(x=>x.id!=id);save();render()}
+function checkin(id){modal(`<h2>Check-in form</h2><form onsubmit="saveCI(event,'${id}')"><label>Phone</label><input id="cp" required><div class="row"><div><label>Age</label><input id="ca" type="number" min="0" required></div><div><label>Gender</label><select id="cg"><option>Female</option><option>Male</option><option>Other</option></select></div></div><label>Symptoms</label><textarea id="cs" rows="2" required></textarea><label>Known allergies / current medicines</label><textarea id="cm" rows="2"></textarea><button class="btn">Submit check-in</button><button type="button" class="btn s" onclick="close()">Cancel</button></form>`)}
+function saveCI(e,id){e.preventDefault();db.appts.find(x=>x.id==id).checkin={phone:$('cp').value,age:$('ca').value,gender:$('cg').value,symptoms:$('cs').value,meds:$('cm').value};save();close();toast('Check-in submitted');render()}
+function showCI(id){const c=db.appts.find(x=>x.id==id).checkin;modal(`<h2>Check-in details</h2><p>Phone: ${esc(c.phone)}<br>Age/Gender: ${esc(c.age)} / ${esc(c.gender)}<br>Symptoms: ${esc(c.symptoms)}<br>Allergies/medicines: ${esc(c.meds||'—')}</p><button class="btn s" onclick="close()">Close</button>`)}
+function review(id){modal(`<h2>Write a review</h2><form onsubmit="saveRv(event,'${id}')"><label>Rating</label><select id="rt"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select><label>Your feedback</label><textarea id="rx" rows="3" required></textarea><button class="btn">Submit</button></form>`)}
+function saveRv(e,id){e.preventDefault();const a=db.appts.find(x=>x.id==id);db.reviews.push({hid:a.hid,did:a.did,hname:a.hname,dname:a.dname,pname:a.pname,rating:+$('rt').value,text:$('rx').value});save();close();toast('Thanks for your review')}
+function upProfile(e){e.preventDefault();const u=db.users.find(x=>x.id==S.user.id);u.name=$('pn').value;u.phone=$('pp').value;if($('pw').value)u.pass=$('pw').value;S.user.name=u.name;save();toast('Details updated');render()}
+function upHosp(e){e.preventDefault();const h=db.hospitals.find(x=>x.id==S.user.id);Object.assign(h,{name:$('hn').value,location:$('hl2').value,phone:$('hp').value,address:$('ha').value,about:$('hab').value});S.user.name=h.name;save();toast('Hospital details and location updated');render()}
+function addDoc(e,hid){e.preventDefault();db.hospitals.find(x=>x.id==hid).doctors.push({id:uid('d'),name:$('dn').value,spec:$('ds').value});save();render()}
+function delDoc(hid,did){if(!confirm('Remove this doctor?'))return;const h=db.hospitals.find(x=>x.id==hid);h.doctors=h.doctors.filter(d=>d.id!=did);save();render()}
+function render(){nav();$('app').innerHTML=view();window.scrollTo(0,0)}
+render();
+</script></body></html>
